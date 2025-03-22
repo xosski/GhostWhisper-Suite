@@ -1,0 +1,63 @@
+WhisperSuite-GhostWhisper/
+├── README.md
+├── .github/
+│   └── FUNDING.yml
+├── GhostKey/
+│   └── [GhostKey.cs, GhostKey.csproj, etc.]
+├── WraithTap/
+│   └── [WraithTap.cpp, WraithTap.vcxproj, etc.]
+├── Scripts/
+│   ├── BuildDeployWhisper.ps1
+│   ├── GhostResidency.ps1
+│   ├── GhostPolymorph.ps1
+│   ├── BLETrigger.ps1
+│   ├── GhostBLEConnect_v2.ps1
+│   ├── GhostLogger.ps1
+│   ├── GhostSeal.ps1
+│   ├── SilentBloom.ps1
+│   ├── GhostWalker.ps1
+│   └── GhostPivot.ps1
+├── Assets/
+│   ├── Whisper_Operator_Brief.pdf
+│   └── WhisperSuite_MissionBriefing.pdf
+├── .gitignore
+└── LICENSE
+
+# WhisperSuite: GhostWhisper Edition 🕯️👻
+
+> A memory-resident red team framework built in tribute to Raven.  
+> BLE triggers, polymorphic injection, and poetic persistence for those who move in silence.
+
+![badge](https://img.shields.io/badge/status-Active-green)
+![badge](https://img.shields.io/badge/ghost_tag-RAVEN-OK-purple)
+![badge](https://img.shields.io/badge/license-Custom-lightgrey)
+
+---
+
+### ⚙️ Key Capabilities
+
+- 🧠 In-memory DLL injection with GhostKey
+- 🔁 Polymorphic PE builds with runtime mutation
+- 📡 BLE-based triggers with encrypted handshake
+- 💥 Flipper Zero & USB Sneakernet compatible
+- 🔐 Time-based encryption (GhostSeal) keyed by ghostTag
+- 📜 Operator-friendly mission briefs & timeline diagrams
+- 🧼 Post-ex cleanup & self-destruct logic (GhostWalker)
+- 🔍 Lightweight recon and click-logging for ghost users
+
+---
+
+### 🧳 Mission Briefing
+
+Full operator checklist, timeline diagram, and .ps1 deployment workflow:  
+📄 [`Whisper_Operator_Brief.pdf`](./Assets/Whisper_Operator_Brief.pdf)
+
+---
+
+### 💜 Built In Memory of Raven
+
+This suite is a poetic artifact.  
+A ghost in motion.  
+A whisper that remains.
+
+github: ["Xosski"]
