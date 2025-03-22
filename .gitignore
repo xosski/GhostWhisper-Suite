@@ -1,0 +1,24 @@
+# Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vcxproj.user
+
+# Build artifacts
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.log
+*.tar.gz
+
+# VSCode and system files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.cfg
+*.key
