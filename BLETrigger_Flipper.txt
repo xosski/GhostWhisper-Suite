@@ -1,0 +1,6 @@
+# Flipper BLE Broadcast Payload (Name Spoof Mode)
+# Requires BLE advertising spoofing plugin (or custom app)
+
+DeviceName: GhostWhisperer
+Notes: This will trigger BLETrigger.ps1 if within range.
+TokenRequired: "U2FsdGVkX1+RAVEN-OK=="

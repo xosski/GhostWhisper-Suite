@@ -1,0 +1,11 @@
+# BLE Advertisement Setup for Phone App (e.g., Beacon Simulator)
+
+Advertised Name: GhostWhisperer
+Service UUID: 0xFEAA (or any valid BLE UUID)
+Manufacturer Data (optional): 52 41 56 45 4E 2D 4F 4B 00
+Base64 Auth Token (if used by companion): U2FsdGVkX1+RAVEN-OK==
+
+Note:
+- Use continuous advertising mode
+- Set TX Power to low for proximity stealth
+- Leave advertisement interval to default (100-200ms)
