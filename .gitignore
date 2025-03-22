@@ -1,24 +1,72 @@
-# Visual Studio
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-*.vcxproj.user
-
-# Build artifacts
-bin/
-obj/
-*.exe
-*.dll
-*.pdb
-*.log
-*.tar.gz
-
-# VSCode and system files
-.vscode/
+# === GENERAL SYSTEM FILES ===
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Secrets
-*.cfg
-*.key
+# === VISUAL STUDIO / MSBUILD ===
+*.obj
+*.pdb
+*.user
+*.suo
+*.ipch
+*.aps
+*.ncb
+*.log
+*.tlog
+*.ilk
+*.tmp
+*.bak
+*.cache
+*.vs/
+Debug/
+Release/
+x64/
+*.sdf
+
+# === .NET / C# BINARIES ===
+*.dll
+*.exe
+*.bin
+*.app
+*.manifest
+
+# === WHISPER SUITE POLYMORPH BUILDS ===
+GhostKey_*.dll
+WraithTap_*.exe
+GhostPolymorph/
+
+# === TEMPORARY / RUNTIME DROPS ===
+*.log
+*.bak
+*.tmp
+*.old
+*.zip
+*.7z
+*.gz
+
+# === MISSION ARTIFACTS / OPERATOR DROPS ===
+WhisperSuite_Build/
+note.txt
+*.pdf
+
+# === SECRETS / ENCRYPTION CONFIGS ===
+.ghost.cfg
+GhostSealKey.txt
+GhostSealDecrypt.ps1
+
+# === BLE FILES / BROADCAST VCARDS ===
+GhostBLEConnect*.ps1
+*.vcf
+
+# === BUILD & LAUNCH HELPERS ===
+SilentBloom.ps1
+LaunchGhost.ps1
+PolymorphBuild.ps1
+BuildDeployWhisper.ps1
+
+# === OPTIONAL: Ignore documentation drafts ===
+*.docx
+*.odt
+
+# === GIT-SPECIFIC ===
+.gitattributes
