@@ -1,0 +1,31 @@
+# === TEXT FILES ===
+*.ps1 text eol=crlf
+*.cs text eol=crlf
+*.cpp text eol=crlf
+*.h text eol=crlf
+*.txt text eol=crlf
+*.md text eol=lf
+
+# === BINARY FILES ===
+*.exe binary
+*.dll binary
+*.zip binary
+*.pdf binary
+
+# === SOURCE CONFIGURATION ===
+*.vcxproj text
+*.csproj text
+*.sln text
+
+# === LINGUIST OVERRIDES (Optional, GitHub Language Stats) ===
+*.ps1 linguist-language=PowerShell
+*.cs linguist-language=C#
+*.cpp linguist-language=C++
+*.h linguist-language=C++
+*.txt linguist-detectable=false
+*.pdf linguist-detectable=false
+*.zip linguist-detectable=false
+
+# === CUSTOM SAFE/UNSAFE MARKERS (Future use) ===
+# *.dll -text    # Uncomment to flag as non-text only
+# *.ps1 text merge=union    # Optional for conflict-friendly merge
