@@ -1,72 +1,29 @@
-# === GENERAL SYSTEM FILES ===
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# === VISUAL STUDIO / MSBUILD ===
-*.obj
-*.pdb
-*.user
-*.suo
-*.ipch
-*.aps
-*.ncb
-*.log
-*.tlog
-*.ilk
-*.tmp
-*.bak
-*.cache
-*.vs/
-Debug/
-Release/
-x64/
-*.sdf
-
-# === .NET / C# BINARIES ===
-*.dll
+# Build artifacts
 *.exe
-*.bin
-*.app
-*.manifest
-
-# === WHISPER SUITE POLYMORPH BUILDS ===
-GhostKey_*.dll
-WraithTap_*.exe
-GhostPolymorph/
-
-# === TEMPORARY / RUNTIME DROPS ===
-*.log
-*.bak
-*.tmp
-*.old
+*.dll
+*.pdb
+*.obj
 *.zip
 *.7z
-*.gz
-
-# === MISSION ARTIFACTS / OPERATOR DROPS ===
-WhisperSuite_Build/
-note.txt
-*.pdf
-
-# === SECRETS / ENCRYPTION CONFIGS ===
-.ghost.cfg
-GhostSealKey.txt
-GhostSealDecrypt.ps1
-
-# === BLE FILES / BROADCAST VCARDS ===
-GhostBLEConnect*.ps1
-*.vcf
-
-# === BUILD & LAUNCH HELPERS ===
-SilentBloom.ps1
-LaunchGhost.ps1
-PolymorphBuild.ps1
-BuildDeployWhisper.ps1
-
-# === OPTIONAL: Ignore documentation drafts ===
-*.docx
-*.odt
-
-# === GIT-SPECIFIC ===
-.gitattributes
+*.log
+/WhisperSuite_Build/
+/bin/
+/obj/
+# IDE/Editor files
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.Spotlight-V100
+.Trashes
+# Python/PowerShell artifacts
+__pycache__/
+*.pyc
+*.ps1~
