@@ -21,6 +21,9 @@ $modules = @(
     "Modules\Phase_Cleanse.ps1",
     "Modules\LinuxPDF_Emu.ps1"
     "Modules\LinuxPDF_Runtime.ps1"
+    "Modules\BuildDeployWhisper.ps1"
+    "Modules\Invoke-GhostWorm.ps1"
+    "Modules\WormWrapper.ps1"
 )
 
 foreach ($mod in $modules) {
@@ -89,3 +92,6 @@ while ($true) {
 . "$PSScriptRoot\Modules\AnamolyHunter.ps1"
 . "$PSScriptRoot\Modules\Anamoly_Detector.ps1"
 . "$PSScriptRoot\Modules\ExorsistMode.ps1"
+. "$PSScriptRoot\Modules\BuildDeployWhisper.ps1"
+. "$PSScriptRoot\Modules\Invoke-GhostWorm.ps1"
+. "$PSScriptRoot\Modules\WormWrapper.ps1"
