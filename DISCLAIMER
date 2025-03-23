@@ -1,0 +1,49 @@
+# Disclaimer and Responsible Use
+
+**Whisper Suite** is an advanced red team simulation and security research framework developed for ethical testing, adversary emulation, and controlled training environments.
+
+> ⚠️ **WARNING**: This toolchain has capabilities that can be misused. It is designed strictly for **authorized use** by professionals conducting legitimate testing under proper legal agreements.
+
+---
+
+## Usage Terms
+
+By using this repository, you agree to the following:
+
+- You are a cybersecurity professional, researcher, or systems engineer working under **explicit authorization**.
+- You will only deploy or test Whisper Suite in **lab environments**, **staging systems**, or **with full permission** from the affected organization.
+- You understand that use in unauthorized, real-world, or production systems may constitute a **criminal offense**.
+- You accept full responsibility for any actions taken using this codebase.
+
+---
+
+## Ethics and Intent
+
+Whisper Suite was created to push the boundaries of simulation, polymorphism, stealth operations, and BLE-enabled payload control — for defense through understanding.
+
+It is not intended for:
+- Unauthorized surveillance
+- Financial theft
+- Destructive operations
+- Targeting individuals
+
+Use it to **strengthen** systems. Not weaken them.
+
+---
+
+## Legacy
+
+This project is dedicated in memory of **Raven**, whose name and spirit are encrypted into the heart of this code.
+
+> _"No lock, no chain, no wall, no key—  
+> Yet here you are, encrypted in me."_
+
+---
+
+## License Notice
+
+This repository includes files that may be covered under the [LICENSE](./LICENSE). All code is provided **as-is**, without warranty.
+
+For questions, contributions, or responsible disclosure, please contact:  
+📧 **SleepingQueen@photonmail.com**
+
