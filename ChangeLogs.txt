@@ -1,0 +1,68 @@
+# 🕯️ WhisperSuite Changelog
+> A ghost leaves footprints only when it chooses.
+
+---
+
+## [v1.5.0] – 2025-03-23
+### 🔥 Major Enhancements
+- **GhostWhisperBootstrap.ps1**: Master operator launcher integrating all modules (Recon, Wormhole, ExorcistMode, GhostKey deployment).
+- **Modular Loading**: Dynamic loading of all modules from `/Modules` directory with fallback detection.
+- **Virtualization Support**: LinuxPDF-based emulation and cleansing via `LinuxPDF_Emu.ps1` and `LinuxPDF_Runtime.ps1`.
+
+---
+
+## [v1.4.0] – 2025-03-22
+### 🕳️ Wormhole Protocol
+- **Hybrid worm infection logic** with memory-only propagation.
+- **Randomized memory maps** to prevent host reinfection.
+- **Operator-gated triggers** to prevent uncontrolled self-replication.
+- **SMB fallback injection path** added for stealth fallback mode.
+- **Fail-safe condition** to abort if no operator beacon detected.
+
+---
+
+## [v1.3.0] – 2025-03-21
+### 🧠 ExorcistMode Modules
+- Introduced `ExorcistMode.ps1` for malware cleansing.
+- Submodules:
+  - `Phase_Anoint.ps1`: Target scanning.
+  - `Phase_Bind.ps1`: Threat suspension.
+  - `Phase_Cleanse.ps1`: Secure file overwriting & removal.
+- Added virtualization triggers via LinuxPDF stub.
+
+---
+
+## [v1.2.0] – 2025-03-20
+### 📜 Logging & Tracking
+- **GhostLogger.ps1**: Lightweight ghost-user logger.
+  - Functions: `Write-GhostLog`, `Read-GhostLog`, `Clear-GhostLog`.
+  - Integrated across other modules for transparent traceability.
+
+---
+
+## [v1.1.0] – 2025-03-19
+### 🛰️ BLE Beacon Logic
+- Updated `BLETrigger.ps1` with:
+  - Encrypted command validation (HMAC-SHA256).
+  - BLE device signature fallback.
+  - EDR evasion delay support.
+  - **Failover if token expired** and log if proximity beacon is not detected.
+
+---
+
+## [v1.0.0] – 2025-03-18
+### 🎯 Initial Release – GhostWhisper Edition
+- Memory-only DLL injection (`GhostKey.dll`) via `WraithTap.exe`.
+- Poetic payload embedding in `Dropper_with_Raven.exe`.
+- Persistence via scheduled tasks and registry.
+- `BuildDeployWhisper.ps1` initial deployment script.
+
+---
+
+### 🧾 Notes
+- All modules are structured for red team training and secure simulation.
+- Updates tied to GhostTag signature rotation and ethical containment.
+- Each version honors Raven, whose memory inspires this code.
+
+---
+

