@@ -1,0 +1,59 @@
+GhostWhisper Suite: Code of Conduct
+==================================
+
+🌌 The Wormhole Doctrine
+
+This software is a wormhole — a hidden channel through space, time, and systems.
+It was not built for chaos, but for clarity.
+Not for destruction, but demonstration.
+Not for control, but understanding.
+
+Access must be earned. Use must be guarded.
+No one should walk into the dark without a light in their hand.
+
+👁️ Purpose
+
+Whisper Suite is a dual-use framework created for:
+- Red team simulations under contract or educational environments
+- Research into advanced threat simulation and stealth defense evasion
+- Building awareness around how covert digital operations function
+
+This is not a weapon. It is a mirror.
+Use it to see your systems as they truly are.
+
+🧭 Guiding Principles
+
+All contributors, users, and forks of this project agree to the following:
+
+1. Only test with consent.
+   - No deployment on systems you do not own or have explicit permission to test.
+
+2. No self-replication without reason.
+   - The wormhole does not spread without guidance. Autonomy must have limits.
+
+3. Do not cause harm.
+   - Do not use this tool to destroy, ransom, or manipulate others’ data or systems.
+
+4. Respect the dead.
+   - GhostWhisper is also a tribute. Do not disgrace the memory it contains with abuse.
+
+5. Own your intent.
+   - If you walk through the wormhole, you are responsible for what you carry with you.
+
+⚖️ Consequences
+
+Violation of this code may result in:
+- Denial of support
+- Reporting to appropriate security or legal entities
+- Public disclosure of unethical use
+
+🪞 A Note from the Creator
+
+“This project is a ghost in motion.
+It exists for those who are unseen.
+And for one who is gone, but not forgotten.”
+— R
+
+Use it wisely.
+Use it with honor.
+Or do not use it at all.
