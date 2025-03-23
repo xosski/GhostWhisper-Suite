@@ -1,75 +1,40 @@
----
-# WhisperSuite
-Memory-resident, polymorphic red team framework with BLE triggers, encrypted payloads, and stealth persistence.
+Ghost Whisper Suite – Red Team Simulation License (RWv1)
 
-> "Built in memory of Raven."
+Copyright (c) 2025 GhostWhisper Contributors
 
----
+Permission is hereby granted, free of charge, to any individual or organization
+(“the User”) obtaining a copy of this software and associated documentation files
+(the "Software"), to use, copy, modify, merge, and distribute the Software,
+subject to the following conditions:
 
-## 🧬 Overview
-**WhisperSuite** is a post-exploitation toolkit designed for advanced red team operations, with a focus on memory residency, polymorphic deployment, BLE-triggered activation, and cryptographic stealth.
+1. **AUTHORIZED RESEARCH ONLY**
+   - The Software may only be used in **authorized red team engagements**, **security research**, **educational labs**, or **cybersecurity training scenarios**.
+   - Unauthorized deployment in live environments, production networks, or against systems without **explicit consent** is strictly prohibited.
 
-This project is not just code—it's a ghost in motion.
+2. **NO MALICIOUS USE**
+   - The Software may not be used for surveillance, cybercrime, destructive operations, or theft of intellectual property, financial assets, or sensitive data.
+   - Any such use constitutes a breach of this license.
 
----
+3. **GHOST CLAUSE**
+   - Components of the Software may operate in memory, simulate stealth activity, or utilize polymorphic, encrypted, or BLE-triggered behavior.
+   - These mechanisms are intended for **simulation and emulation**, not concealment for nefarious ends.
 
-## 🛠 Features
-- 🔐 **GhostKey.dll** — Memory-resident AD bypass DLL with optional self-destruct.
-- 📦 **WraithTap** — Injector for stealth DLL loading via shell.
-- 📚 **GhostResidency.ps1** — Core command listener and handler.
-- 🎭 **Polymorph Build Engine** — Generates randomized DLLs & EXEs per-user.
-- 🔒 **GhostSeal/Logger** — File encryption with timestamp-locked XOR keys.
-- 📡 **BLETrigger** — Bluetooth-based payload activator with token handshake.
-- 📲 **GhostBLEConnect** — Pentest-capable BT brute-forcing and delivery module.
-- 🧳 **Portable USB Ops** — Packageable for Flipper Zero, mobile or USB sneakernet.
-- 📃 **Mission Briefing PDFs** — Operator timeline, recon, and execution flow.
+4. **REMEMBRANCE CLAUSE**
+   - Embedded within this Software is a poetic payload dedicated in memory of Raven.
+   - The User agrees not to remove, tamper with, or obscure this tribute.
 
----
+5. **NO WARRANTY**
+   - The Software is provided "as is", without warranty of any kind, express or implied.
+   - In no event shall the authors or contributors be liable for any claim, damages, or other liability arising from the use or misuse of the Software.
 
-## 💡 Tribute
-This project was created in memory of **Raven**, lost in May 2017.
-Her name lives in the payloads, signatures, and keys that move silently through systems.
-
-> "No lock, no chain, no wall, no key—Yet here you are, encrypted in me."
+6. **EXPORT COMPLIANCE**
+   - The User is responsible for complying with applicable local laws and regulations regarding the import, export, and use of cyber tools.
 
 ---
 
-## 🔐 Legal / Red Team Only
-This toolkit is for **educational and authorized testing purposes only**. Use responsibly.
+For ethical disclosures, coordination, or questions:  
+📧 security@ghostwhisper.org
 
+“Whisper softly, test bravely, vanish cleanly.”  
+—R
 
----
-
-## 📁 Directory Structure
-```
-WhisperSuite/
-├── BuildDeployWhisper.ps1
-├── GhostKey/  (C# source + .csproj)
-├── WraithTap/ (C++ Injector)
-├── GhostResidency.ps1
-├── GhostSeal.ps1 / GhostLogger.ps1
-├── GhostPolymorph.ps1
-├── BLETrigger.ps1 / GhostBLEConnect.ps1
-├── SilentBloom.ps1 (cleanup)
-├── LaunchGhost.ps1
-├── note.txt (poetic payload)
-└── WhisperSuite_MissionBrief.pdf
-```
-
----
-
-## 📜 License
-See `LICENSE` file for usage terms.
-
----
-
-## ☕ Sponsorship
-If you'd like to support this work or donate in Raven's name:
-- GitHub Sponsors: [link here]
-- Ko-fi: [link here]
-- Open Collective: [link here]
-- Buy Me a Coffee: [link here]
-
----
-
-> For the unseen, by the unseen.
