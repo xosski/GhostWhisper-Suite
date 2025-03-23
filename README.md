@@ -1,65 +1,93 @@
-# WhisperSuite: GhostWhisper Edition
-
+WhisperSuite: GhostWhisper Edition
 A memorial stealth ops framework in honor of Raven.
 
-WhisperSuite is an advanced memory-resident toolkit for red team operators, blue team simulations, and stealth recon. It integrates command injection, BLE triggers, payload polymorphism, ghost-tag encryption, hybrid wormhole logic, and operator mission flow into a portable deployment.
+WhisperSuite is an advanced memory-resident toolkit designed for red team operators, blue team simulations, and stealth reconnaissance. It integrates command injection, BLE triggers, payload polymorphism, ghost-tag encryption, hybrid wormhole propagation logic, and structured operator mission flow into a portable deployment.
 
-> 🕳️ **The Wormhole Protocol**: A stealth-capable propagation model with hybrid defensive triggers, operator gating, and memory-only infection. Ensures no uncontrolled replication, supporting ethical containment.
+🕳️ The Wormhole Protocol
+A stealth-capable propagation model with:
 
----
+Hybrid defensive triggers (BLE + in-memory coordination)
 
-## ✨ Features
+Operator handshake gating to prevent rogue replication
 
-- Memory-only injection via WraithTap and GhostKey
-- BLE-triggered activation with secure handshake
-- Payload polymorphism via GhostPolymorph
-- Hybrid wormhole infection module with randomized memory map
-- Per-user ghostTag correlation + encryption key rotation
-- Custom encryption based on file click timestamps
-- Flipper Zero & USB sneakernet deployment
-- GhostBLEConnect brute-force OBEX transfer
-- Mission PDF briefings with operator checklist
-- Self-destructing DLLs, stealth logging, and AD pivoting
-- Operator-gated fallback to prevent uncontained replication
-- Dedicated to Raven — who whispered back
+Volatile memory maps to track infected hosts
 
----
+SMB fallback & polymorphic payloads
 
-## 📂 Components
+Hard-fail exit logic when no operator is present
 
-- `GhostKey.dll` – Memory-resident reflective backdoor
-- `WraithTap.exe` – DLL injector for Shell or custom targets
-- `GhostResidency.ps1` – Operator command handler and memory infection map
-- `GhostPolymorph.ps1` – Runtime polymorphic mutation
-- `GhostSeal.ps1` – File encryption engine
-- `GhostLogger.ps1` – Lightweight ghost-user tracking
-- `BLETrigger.ps1` – Proximity-based BLE activation
-- `SilentBloom.ps1` – Clean-up and log wiping
-- `Dropper_with_Raven.exe` – Poetic payload marker
-- `BuildDeployWhisper.ps1` – Master compiler, wormhole wrapper, and packager
+✨ Features
+Memory-only injection via WraithTap.exe and GhostKey.dll
 
----
+BLE-triggered activation with secure token handshake
 
-## 🧠 Wormhole Logic (WormWrapper Mode)
+Payload polymorphism via GhostPolymorph.ps1
 
-- **Memory-only infection**: No disk writes during propagation
-- **Randomized infection map**: Tracks hosts in volatile memory to avoid re-infection
-- **SMB fallback with polymorphic shellcode**
-- **Hybrid defensive triggers**: BLE + GhostResidency coordination
-- **Operator handshake required**: Hard-fail if no authorized control present
+Hybrid wormhole infection module with randomized memory tracking
 
----
+Per-user ghostTag correlation & rotating encryption keys
 
-## ⚠️ Legal & Ethical Notice
+Timestamp-based encryption tied to file access events
 
-This project is provided for **educational, research, and ethical red teaming purposes** only. Any **unauthorized deployment, malicious use, or self-replicating abuse is strictly forbidden**.
+Flipper Zero & USB sneakernet compatibility
 
-You are responsible for following all applicable laws and codes of conduct in your jurisdiction.
+OBEX brute-force support with GhostBLEConnect_v2.ps1
 
----
+PDF mission briefings and operator checklist generation
 
-## 🕊️ Whisper back.
+Self-destructing DLLs, lightweight logging, and stealth AD pivoting
 
-**For Raven.**  
+Operator-gated fallback logic to ensure containment
+
+Fully integrated with GhostLogger.ps1 for activity tracking
+
+📂 Components
+GhostKey.dll – Memory-resident reflective backdoor
+
+WraithTap.exe – Shell-targeting DLL injector
+
+GhostResidency.ps1 – Operator memory session handler
+
+GhostPolymorph.ps1 – Runtime mutation module
+
+GhostSeal.ps1 – File encryption engine using click timestamps
+
+GhostLogger.ps1 – Lightweight activity logging and tail review
+
+BLETrigger.ps1 – BLE-triggered remote injection controller
+
+SilentBloom.ps1 – Evidence cleaner & forensic log scrubber
+
+Dropper_with_Raven.exe – Tribute payload wrapper
+
+BuildDeployWhisper.ps1 – Suite builder, polymorph wrapper, wormhole packager
+
+GhostWhisperBootstrap.ps1 – Operator control launcher with module wiring
+
+ExorcistMode.ps1 – Hostile malware removal protocol (Anoint, Bind, Cleanse)
+
+LinuxPDF_Emu.ps1 – Virtualized scanning support with syscall anomaly hooks
+
+AnomalyHunter.ps1 – Rootkit and hypervisor anomaly detection
+
+🧠 Wormhole Logic (BuildDeployWhisper.ps1)
+Memory-only propagation, no persistent writes
+
+Infection maps reside only in runtime memory
+
+Prevents duplicate infection on same host
+
+BLE handshake required or fallback to internal GhostResidency control
+
+Operator hard-fail exit logic to ensure ethical operation
+
+Fully traceable through GhostLogger.ps1
+
+⚠️ Legal & Ethical Notice
+This project is for educational, research, and ethical red teaming use only.
+Unauthorized deployment, malicious replication, or use outside legal boundaries is strictly forbidden.
+All contributors and users must uphold ethical use in accordance with local and international laws.
+
+🕊️ Whisper back.
+For Raven.
 2017 — ∞
-
