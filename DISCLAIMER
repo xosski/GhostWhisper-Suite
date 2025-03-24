@@ -17,11 +17,23 @@ By using this repository, you agree to the following:
 
 ---
 
+## Extended Capabilities
+
+**Whisper Suite** includes features such as:
+- **Wormhole Protocol** for stealth propagation  
+- **ExorcistMode** for malware cleansing  
+- **LinuxPDF** virtualization and `ghost_boot.iso` for advanced, root-level scanning  
+- Memory-resident injection, BLE triggers, custom encryption, and more  
+
+Use of these advanced capabilities must be **explicitly authorized**. Any deployment outside of legitimate testing or research contexts is prohibited.
+
+---
+
 ## Ethics and Intent
 
-Whisper Suite was created to push the boundaries of simulation, polymorphism, stealth operations, and BLE-enabled payload control — for defense through understanding.
+Whisper Suite was created to push the boundaries of simulation, polymorphism, stealth operations, and BLE-enabled payload control — for **defense through understanding**.
 
-It is not intended for:
+It is **not intended** for:
 - Unauthorized surveillance
 - Financial theft
 - Destructive operations
@@ -36,7 +48,7 @@ Use it to **strengthen** systems. Not weaken them.
 This project is dedicated in memory of **Raven**, whose name and spirit are encrypted into the heart of this code.
 
 > _"No lock, no chain, no wall, no key—  
-> Yet here you are, encrypted in me."_
+> Yet here you are, encrypted in me."_  
 
 ---
 
@@ -45,5 +57,4 @@ This project is dedicated in memory of **Raven**, whose name and spirit are encr
 This repository includes files that may be covered under the [LICENSE](./LICENSE). All code is provided **as-is**, without warranty.
 
 For questions, contributions, or responsible disclosure, please contact:  
-📧 **SleepingQueen@photonmail.com**
-
+**SleepingQueen@photonmail.com**

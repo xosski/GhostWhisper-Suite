@@ -17,18 +17,18 @@
 - **Randomized memory maps** to prevent host reinfection.
 - **Operator-gated triggers** to prevent uncontrolled self-replication.
 - **SMB fallback injection path** added for stealth fallback mode.
-- **Fail-safe condition** to abort if no operator beacon detected.
+- **Fail-safe condition** to abort if no operator beacon is detected.
 
 ---
 
 ## [v1.3.0] – 2025-03-21
 ### 🧠 ExorcistMode Modules
-- Introduced `ExorcistMode.ps1` for malware cleansing.
+- Introduced `ExorcistMode.ps1` for malware cleansing and neutralization.
 - Submodules:
   - `Phase_Anoint.ps1`: Target scanning.
-  - `Phase_Bind.ps1`: Threat suspension.
+  - `Phase_Bind.ps1`: Threat/process suspension.
   - `Phase_Cleanse.ps1`: Secure file overwriting & removal.
-- Added virtualization triggers via LinuxPDF stub.
+- Added virtualization triggers via LinuxPDF stub (prelude to full Linux-based scanning).
 
 ---
 
@@ -36,7 +36,7 @@
 ### 📜 Logging & Tracking
 - **GhostLogger.ps1**: Lightweight ghost-user logger.
   - Functions: `Write-GhostLog`, `Read-GhostLog`, `Clear-GhostLog`.
-  - Integrated across other modules for transparent traceability.
+  - Integrated across modules for transparent traceability and minimal footprints.
 
 ---
 
@@ -44,25 +44,21 @@
 ### 🛰️ BLE Beacon Logic
 - Updated `BLETrigger.ps1` with:
   - Encrypted command validation (HMAC-SHA256).
-  - BLE device signature fallback.
-  - EDR evasion delay support.
-  - **Failover if token expired** and log if proximity beacon is not detected.
+  - BLE device signature fallback and EDR evasion delay support.
+  - **Failover** if token expired, logging event if proximity beacon is absent.
 
 ---
 
 ## [v1.0.0] – 2025-03-18
 ### 🎯 Initial Release – GhostWhisper Edition
 - Memory-only DLL injection (`GhostKey.dll`) via `WraithTap.exe`.
-- Poetic payload embedding in `Dropper_with_Raven.exe`.
-- Persistence via scheduled tasks and registry.
-- `BuildDeployWhisper.ps1` initial deployment script.
+- Poetic payload embedding in `Dropper_with_Raven.exe` (tribute marker).
+- Persistence via scheduled tasks & registry (Run key).
+- `BuildDeployWhisper.ps1` initial deployment script & polymorphism logic.
 
 ---
 
 ### 🧾 Notes
-- All modules are structured for red team training and secure simulation.
-- Updates tied to GhostTag signature rotation and ethical containment.
-- Each version honors Raven, whose memory inspires this code.
-
----
-
+- All modules structured for red team training & secure simulation.
+- Updates tied to **GhostTag** signature rotation & ethical containment.
+- Each version honors **Raven**, whose memory inspires this code.

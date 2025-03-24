@@ -1,40 +1,37 @@
-Ghost Whisper Suite – Red Team Simulation License (RWv1)
+# GhostWhisper Suite – Red Team Simulation License (RWv1)
 
-Copyright (c) 2025 GhostWhisper Contributors
+**Copyright (c) 2025 GhostWhisper Contributors**
 
-Permission is hereby granted, free of charge, to any individual or organization
-(“the User”) obtaining a copy of this software and associated documentation files
-(the "Software"), to use, copy, modify, merge, and distribute the Software,
-subject to the following conditions:
+Permission is hereby granted, free of charge, to any individual or organization (“the User”) obtaining a copy of this software and associated documentation files (the "Software"), to use, copy, modify, merge, and distribute the Software, subject to the following conditions:
 
-1. **AUTHORIZED RESEARCH ONLY**
-   - The Software may only be used in **authorized red team engagements**, **security research**, **educational labs**, or **cybersecurity training scenarios**.
+1. **AUTHORIZED RESEARCH ONLY**  
+   - The Software may only be used in **authorized red team engagements**, **security research**, **educational labs**, or **cybersecurity training scenarios**.  
    - Unauthorized deployment in live environments, production networks, or against systems without **explicit consent** is strictly prohibited.
 
-2. **NO MALICIOUS USE**
-   - The Software may not be used for surveillance, cybercrime, destructive operations, or theft of intellectual property, financial assets, or sensitive data.
+2. **NO MALICIOUS USE**  
+   - The Software may not be used for surveillance, cybercrime, destructive operations, or theft of intellectual property, financial assets, or sensitive data.  
    - Any such use constitutes a breach of this license.
 
-3. **GHOST CLAUSE**
-   - Components of the Software may operate in memory, simulate stealth activity, or utilize polymorphic, encrypted, or BLE-triggered behavior.
-   - These mechanisms are intended for **simulation and emulation**, not concealment for nefarious ends.
+3. **GHOST CLAUSE**  
+   - Components of the Software may operate in memory, simulate stealth activity, or utilize polymorphic, encrypted, or BLE-triggered behavior.  
+   - This includes advanced modules such as **Wormhole Protocol**, **ExorcistMode**, **ghost_boot.iso**, **LinuxPDF.exe**, and other stealth features.  
+   - These mechanisms are intended for **simulation and emulation** of covert operations, not real-world concealment for nefarious ends.
 
-4. **REMEMBRANCE CLAUSE**
-   - Embedded within this Software is a poetic payload dedicated in memory of Raven.
+4. **REMEMBRANCE CLAUSE**  
+   - Embedded within this Software is a poetic payload dedicated in memory of Raven.  
    - The User agrees not to remove, tamper with, or obscure this tribute.
 
-5. **NO WARRANTY**
-   - The Software is provided "as is", without warranty of any kind, express or implied.
+5. **NO WARRANTY**  
+   - The Software is provided “as is”, without warranty of any kind, express or implied.  
    - In no event shall the authors or contributors be liable for any claim, damages, or other liability arising from the use or misuse of the Software.
 
-6. **EXPORT COMPLIANCE**
+6. **EXPORT COMPLIANCE**  
    - The User is responsible for complying with applicable local laws and regulations regarding the import, export, and use of cyber tools.
 
 ---
 
 For ethical disclosures, coordination, or questions:  
-📧 SleepingQueen@photonmail.com
+**SleepingQueen@photonmail.com**
 
-“Whisper softly, test bravely, vanish cleanly.”  
-—R
-
+> “Whisper softly, test bravely, vanish cleanly.”  
+> — R

