@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "MT8MSlvtmfK4BkOu0WMpgexjwUJXOVeDUanW51iUPWn8kQn6+x/rqBLPeS/QLUzeJgkV+dQgN9eNX+sZLwzHEg==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\ek930\\OneDrive\\Desktop\\X12\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ek930\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.31\\microsoft.netcore.app.ref.6.0.31.nupkg.sha512",
+    "C:\\Users\\ek930\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.31\\microsoft.windowsdesktop.app.ref.6.0.31.nupkg.sha512",
+    "C:\\Users\\ek930\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.31\\microsoft.aspnetcore.app.ref.6.0.31.nupkg.sha512",
+    "C:\\Users\\ek930\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.31\\microsoft.netcore.app.host.win-x64.6.0.31.nupkg.sha512"
+  ],
+  "logs": []
+}
