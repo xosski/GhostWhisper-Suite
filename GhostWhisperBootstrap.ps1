@@ -15,14 +15,15 @@ $modules = @(
     "Modules\ExorcistMode.ps1",
     "Modules\GhostLogger.ps1",
     "Modules\AnomalyHunter.ps1",
-    "Modules\Anomaly_Detector.ps1", # <---- included here
+    "Modules\Anomaly_Detector.ps1",
     "Modules\GhostSeal.ps1",
     "Modules\Phase_Anoint.ps1",
     "Modules\Phase_Bind.ps1",
     "Modules\Phase_Cleanse.ps1",
     "Modules\LinuxPDF_Emu.ps1",
     "Modules\LinuxPDF_Runtime.ps1",
-    "Modules\Wormhole.ps1"
+    "Modules\Wormhole.ps1",
+    "Modules\Phantom.ps1" # <-- Combined SearchPhantom + PrismGhost
 )
 
 foreach ($mod in $modules) {
@@ -62,6 +63,7 @@ function Show-OperatorMenu {
     Write-Host "[4] Activate Wormhole Listener"
     Write-Host "[5] Run GhostLinux VM (via LinuxPDF.exe + ghost_boot.iso)"
     Write-Host "[6] Exit"
+    Write-Host "[7] Deploy Phantom Recon Stack (SearchPhantom + PrismGhost)"
     Write-Host ""
 }
 
@@ -102,7 +104,6 @@ while ($true) {
         }
         "4" {
             Write-Host "[📡] Activating wormhole beacon..."
-            # We already loaded Modules\Wormhole.ps1 above
             if (Get-Command -Name Start-WormholeListener -ErrorAction SilentlyContinue) {
                 Start-WormholeListener
             }
@@ -112,8 +113,6 @@ while ($true) {
         }
         "5" {
             Write-Host "[🔥] Launching GhostLinux VM environment..."
-
-            # e.g. .\LinuxPDF.exe --boot ghost_boot.iso
             $linuxPdfExe = Join-Path $PSScriptRoot "LinuxPDF.exe"
             $isoPath = Join-Path $PSScriptRoot "ghost_boot.iso"
 
@@ -133,6 +132,19 @@ while ($true) {
         "6" {
             Write-Host "[✖] Exiting. Ghost sleeps."
             break
+        }
+        "7" {
+            Write-Host "[👻] Launching Phantom Recon Module..."
+            if (Get-Command -Name Start-PhantomRecon -ErrorAction SilentlyContinue) {
+                 $logPath = Join-Path $PSScriptRoot "Logs\Phantom.log"
+                if (-not (Test-Path "$PSScriptRoot\Logs")) {
+                    New-Item -ItemType Directory -Path "$PSScriptRoot\Logs" | Out-Null
+                }
+                Start-PhantomRecon -Mode "SilentHijack" -LogPath $logPath
+            }
+            else {
+                Write-Warning "Start-PhantomRecon function not found. Ensure Phantom.ps1 is correctly placed."
+            }
         }
         default {
             Write-Warning "Invalid selection. Try again."

