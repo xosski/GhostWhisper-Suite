@@ -1,7 +1,7 @@
 # WhisperSuite: GhostWhisper Edition
 *A memorial stealth ops framework in honor of Raven.*
 
-WhisperSuite is an advanced **multi-vector exploitation platform** for red team operators, blue team simulations, and stealth reconnaissance. It combines **memory-resident**, **kernel-level**, **browser-based**, and **desktop persistence** capabilities into a unified framework with BLE triggers, payload polymorphism, ghost-tag encryption, wormhole propagation logic, and comprehensive operator controls that give you a hidden hand across all attack vectors.
+WhisperSuite is an advanced **multi-vector exploitation platform** for red team operators, blue team simulations, and stealth reconnaissance. It combines **memory-resident**, **kernel-level**, **browser-based**, **desktop persistence**, **network reconnaissance**, and **bluetooth exploitation** capabilities into a unified framework with BLE triggers, payload polymorphism, ghost-tag encryption, wormhole propagation logic, and comprehensive operator controls that give you a hidden hand across all attack vectors.
 
 ## 🕳️ The Wormhole Protocol
 A stealth-capable propagation model with:
@@ -38,6 +38,13 @@ A stealth-capable propagation model with:
 - Legitimate appearance avoiding detection
 - Persistent remote desktop access
 
+### 📡 **Network & Bluetooth Exploitation**
+- SSH brute force with Discord webhook notifications
+- Bluetooth device scanning and IP-based blocking
+- FTP service automation with file archiving
+- Cross-platform firewall manipulation (Linux/macOS/Windows)
+- Device persistence and monitoring capabilities
+
 ### ⚡ **Unified Operations**
 - BLE-triggered activation across all vectors
 - Flipper Zero & USB sneakernet compatibility
@@ -53,6 +60,7 @@ A stealth-capable propagation model with:
 ### 🧠 **Memory-Resident Core**
 - **GhostKey.dll** – Memory-resident reflective backdoor with self-destruct
 - **WraithTap.exe** – Cross-process DLL injector and memory manipulator
+- **GhostInjector.cs** – Process hollowing and payload injection framework
 - **GhostResidency.ps1** – Operator memory session handler and persistence
 - **GhostPolymorph.ps1** – Runtime mutation and signature evasion
 
@@ -60,6 +68,10 @@ A stealth-capable propagation model with:
 - **GhostKernel.c** – Linux kernel module for direct disk access (disguised as USB monitor)
 - **GhostKernel.ps1** – PowerShell interface for kernel module management
 - **GhostKernel.mk** – Build system for cross-platform kernel compilation
+- **GhostVuln.c** – Kernel vulnerability research module (null pointer dereference)
+- **GhostStack.c** – Stack overflow demonstration module for security testing
+- **GhostUSB.c** – USB mass storage device driver with bulk endpoint control
+- **GhostGadget.c** – USB gadget driver with composite mass storage support
 
 ### 🌐 **Browser Exploitation**
 - **PhantomHook/** – Complete Chrome extension framework for browser persistence
@@ -78,6 +90,10 @@ A stealth-capable propagation model with:
 - **BuildDeployWhisper.ps1** – Multi-vector suite builder and packager
 - **BLETrigger.ps1** – Bluetooth Low Energy activation controller
 - **GhostBLEConnect_v2.ps1** – OBEX brute-force and Flipper Zero integration
+- **GhostBrute.go** – SSH brute force tool with Discord webhook integration
+- **GhostUtils.go** – Data structure utilities with linked lists and binary heap
+- **GhostBluetooth.py** – Bluetooth scanning, device interaction, and IP blocking tool
+- **GhostFTP.py** – FTP service utility for automated file transfers and archiving
 
 ### 🔐 **Security & Persistence**
 - **GhostSeal.ps1** – Timestamp-based file encryption engine
