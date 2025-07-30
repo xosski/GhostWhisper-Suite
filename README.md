@@ -1,110 +1,193 @@
-WhisperSuite: GhostWhisper Edition
-A memorial stealth ops framework in honor of Raven.
+# WhisperSuite: GhostWhisper Edition
+*A memorial stealth ops framework in honor of Raven.*
 
-WhisperSuite is an advanced memory-resident toolkit for red team operators, blue team simulations, and stealth reconnaissance. It integrates command injection, BLE triggers, payload polymorphism, ghost-tag encryption, wormhole propagation logic, structured operator missions, and a virtualized cleansing approach that gives the operator a hidden hand in the dark, orchestrating everything from behind the scenes.
+WhisperSuite is an advanced **multi-vector exploitation platform** for red team operators, blue team simulations, and stealth reconnaissance. It combines **memory-resident**, **kernel-level**, **browser-based**, and **desktop persistence** capabilities into a unified framework with BLE triggers, payload polymorphism, ghost-tag encryption, wormhole propagation logic, and comprehensive operator controls that give you a hidden hand across all attack vectors.
 
-🕳️ The Wormhole Protocol
+## 🕳️ The Wormhole Protocol
 A stealth-capable propagation model with:
+- Hybrid defensive triggers (BLE + in-memory coordination)
+- Operator handshake gating to prevent rogue replication
+- Volatile memory maps to track infected hosts
+- SMB fallback & polymorphic payloads
+- Hard-fail exit logic when no operator is present
 
-Hybrid defensive triggers (BLE + in-memory coordination)
+## ✨ Multi-Vector Capabilities
 
-Operator handshake gating to prevent rogue replication
+### 🧠 **Memory-Resident Exploitation**
+- Memory-only injection via WraithTap.exe and GhostKey.dll
+- Self-destructing DLLs with operator authentication gates
+- Volatile memory maps preventing duplicate infections
+- Cross-process memory manipulation and code injection
 
-Volatile memory maps to track infected hosts
+### 🔮 **Kernel-Level Access** 
+- Direct disk sector access bypassing filesystem layers
+- Disguised kernel modules (appears as USB monitoring driver)
+- Binary tree reconstruction and data extraction from raw sectors
+- Root-level system access with stealth operation
 
-SMB fallback & polymorphic payloads
+### 🌐 **Browser-Based Persistence**
+- Chrome extension deployment with WebAssembly RWX memory
+- Offscreen document execution invisible to users
+- IndexedDB persistence and cross-origin data exfiltration
+- Native messaging bridge for system command execution
+- Discord-targeted payload injection capabilities
 
-Hard-fail exit logic when no operator is present
+### 🖥️ **Desktop Persistence**
+- Stealth Chrome Remote Desktop installation
+- Cross-platform GUI access (Windows RDP + Linux)
+- Legitimate appearance avoiding detection
+- Persistent remote desktop access
 
-✨ Features
-Memory-only injection via WraithTap.exe and GhostKey.dll
+### ⚡ **Unified Operations**
+- BLE-triggered activation across all vectors
+- Flipper Zero & USB sneakernet compatibility
+- Per-user ghostTag correlation & rotating encryption keys
+- Payload polymorphism and runtime mutation
+- OBEX brute-force support with GhostBLEConnect_v2.ps1
+- Operator-gated fallback logic ensuring ethical containment
+- Comprehensive logging and trace removal across all vectors
+- Advanced Linux virtualization for stealth recon & exorcism flows
 
-BLE-triggered activation with secure token handshake
+## 📂 Components
 
-Payload polymorphism via GhostPolymorph.ps1
+### 🧠 **Memory-Resident Core**
+- **GhostKey.dll** – Memory-resident reflective backdoor with self-destruct
+- **WraithTap.exe** – Cross-process DLL injector and memory manipulator
+- **GhostResidency.ps1** – Operator memory session handler and persistence
+- **GhostPolymorph.ps1** – Runtime mutation and signature evasion
 
-Hybrid wormhole infection with randomized memory tracking
+### 🔮 **Kernel-Level Modules**
+- **GhostKernel.c** – Linux kernel module for direct disk access (disguised as USB monitor)
+- **GhostKernel.ps1** – PowerShell interface for kernel module management
+- **GhostKernel.mk** – Build system for cross-platform kernel compilation
 
-Per-user ghostTag correlation & rotating encryption keys
+### 🌐 **Browser Exploitation**
+- **PhantomHook/** – Complete Chrome extension framework for browser persistence
+  - **GhostCore** – General purpose WebAssembly memory exploitation
+  - **Discord** – Targeted Discord content script injection
+  - **GhostSurface** – Advanced memory manipulation and system access
+- **GhostBrowser.ps1** – Chrome extension deployment and management system
+- **Helper.txt** – Native messaging host for system command bridge (C++)
 
-Timestamp-based encryption tied to file access events
+### 🖥️ **Desktop Persistence**
+- **GhostDesktop.ps1** – Stealth Chrome Remote Desktop deployment
+- Cross-platform RDP/GUI access with cleanup integration
 
-Flipper Zero & USB sneakernet compatibility
+### 🎛️ **Control & Operations**
+- **GhostWhisperBootstrap.ps1** – Master operator control launcher (10 operational modes)
+- **BuildDeployWhisper.ps1** – Multi-vector suite builder and packager
+- **BLETrigger.ps1** – Bluetooth Low Energy activation controller
+- **GhostBLEConnect_v2.ps1** – OBEX brute-force and Flipper Zero integration
 
-OBEX brute-force support with GhostBLEConnect_v2.ps1
+### 🔐 **Security & Persistence**
+- **GhostSeal.ps1** – Timestamp-based file encryption engine
+- **GhostLogger.ps1** – Unified activity logging across all vectors
+- **SilentBloom.ps1** – Complete evidence removal (memory, kernel, browser, desktop)
 
-PDF mission briefings and operator checklist generation
+### 🧪 **Advanced Capabilities**
+- **ExorcistMode.ps1** – Hostile malware removal (Anoint, Bind, Cleanse)
+- **AnomalyHunter.ps1** – Rootkit & hypervisor anomaly detection
+- **LinuxPDF_Emu.ps1 / LinuxPDF_Runtime.ps1** – Virtualized scanning with syscall hooks
+- **LinuxPDF.exe** – .NET virtualization harness for ghost_boot.iso
+- **Dropper_with_Raven.exe** – Memorial tribute payload wrapper
 
-Self-destructing DLLs, lightweight logging, stealth AD pivoting
+## 🧠 Wormhole Logic (BuildDeployWhisper.ps1)
+- Memory-only propagation, no persistent writes
+- Infection maps reside only in runtime memory
+- Prevents duplicate infection on the same host
+- BLE handshake required or fallback to internal GhostResidency control
+- Operator hard-fail exit to ensure ethical operation
+- Fully traceable via GhostLogger.ps1
 
-Operator-gated fallback logic to ensure containment
+## 🚀 Multi-Vector Deployment
 
-Fully integrated with GhostLogger.ps1 for activity tracking
+### Memory Vector
+Deploy memory-resident backdoors via WraithTap and GhostKey for volatile, signature-evading access.
 
-Advanced Linux virtualization for stealth recon & exorcism flows
+### Kernel Vector  
+Load GhostKernel module for root-level disk access and system manipulation bypassing userland detection.
 
-📂 Components
-GhostKey.dll – Memory-resident reflective backdoor
+### Browser Vector
+Install PhantomHook extensions for persistent browser-based access with WebAssembly exploitation.
 
-WraithTap.exe – Shell-targeting DLL injector
+### Desktop Vector
+Enable stealth remote desktop access for persistent GUI control across platforms.
 
-GhostResidency.ps1 – Operator memory session handler
+### Unified Control
+All vectors share common authentication, logging, and cleanup systems for coordinated operations.
 
-GhostPolymorph.ps1 – Runtime mutation module
+## 🔧 Quick Start
 
-GhostSeal.ps1 – File encryption engine using click timestamps
+1. **Build the Suite**
+   ```powershell
+   .\BuildDeployWhisper.ps1
+   ```
 
-GhostLogger.ps1 – Lightweight activity logging and tail review
+2. **Launch Operator Interface**
+   ```powershell
+   .\GhostWhisperBootstrap.ps1
+   ```
 
-BLETrigger.ps1 – BLE-triggered remote injection controller
+3. **Select Vector(s)**
+   - `[3]` Memory-resident injection
+   - `[8]` Desktop persistence  
+   - `[9]` Kernel-level access
+   - `[10]` Browser exploitation
 
-SilentBloom.ps1 – Evidence cleaner & forensic log scrubber
+4. **Activate via BLE**
+   ```powershell
+   .\BLETrigger.ps1
+   ```
 
-Dropper_with_Raven.exe – Tribute payload wrapper (appends a memorial poem at build time)
+5. **Cleanup Operations**
+   ```powershell
+   .\SilentBloom.ps1
+   ```
 
-BuildDeployWhisper.ps1 – Suite builder, polymorph wrapper, wormhole packager
+## 🌐 Operational Modes
 
-GhostWhisperBootstrap.ps1 – Operator control launcher with module wiring
+The GhostWhisperBootstrap.ps1 provides 10 operational modes:
 
-ExorcistMode.ps1 – Hostile malware removal protocol (Anoint, Bind, Cleanse)
+1. **Memory Recon** - Start GhostResidency session
+2. **ExorcistMode** - Malware removal and cleansing
+3. **Memory Injection** - Deploy GhostKey & WraithTap
+4. **Wormhole** - Activate propagation listener
+5. **Linux VM** - Boot ghost_boot.iso environment
+6. **Exit** - Clean termination
+7. **Phantom Recon** - Advanced search and stealth operations
+8. **Desktop Access** - Chrome RDP deployment
+9. **Kernel Access** - GhostKernel disk manipulation
+10. **Browser Persistence** - PhantomHook extension deployment
 
-LinuxPDF_Emu.ps1 / LinuxPDF_Runtime.ps1 – Virtualized scanning with syscall anomaly hooks
+## 🧪 Virtualized Cleansing: ghost_boot.iso + LinuxPDF.exe
+For ExorcistMode or advanced recon:
+- Build a minimal ISO (ghost_boot.iso) with CreateGhostISO.ps1
+- Launch LinuxPDF.exe in desired mode (`--mode=exorcism`, `--target=C:\Temp`, etc.)
+- Emulate root-level scanning via ephemeral system calls in isolation
+- Acts like a "hand in the dark" with minimal host OS impact
 
-AnomalyHunter.ps1 – Rootkit & hypervisor anomaly detection
-
-ghost_boot.iso – Minimal Linux environment for advanced recon & exorcism, built via CreateGhostISO.ps1
-
-LinuxPDF.exe – .NET-based virtualization harness that boots/emulates ghost_boot.iso, enabling stealth operator flow akin to a “hand in the dark”
-
-🧠 Wormhole Logic (BuildDeployWhisper.ps1)
-Memory-only propagation, no persistent writes
-
-Infection maps reside only in runtime memory
-
-Prevents duplicate infection on the same host
-
-BLE handshake required or fallback to internal GhostResidency control
-
-Operator hard-fail exit to ensure ethical operation
-
-Fully traceable via GhostLogger.ps1
-
-🚀 Virtualized Cleansing: ghost_boot.iso + LinuxPDF.exe
-For ExorcistMode or advanced recon, you can:
-
-Build a minimal ISO (ghost_boot.iso) with CreateGhostISO.ps1.
-
-Launch LinuxPDF.exe in the desired mode (--mode=exorcism, --target=C:\Temp, etc.).
-
-Emulate root-level scanning or stealth exorcism via ephemeral system calls, analyzing or neutralizing threats in isolation.
-
-This approach acts like a “hand in the dark,” granting root-level access from behind the scenes, while preserving your primary host OS and ensuring minimal footprints.
-
-⚠️ Legal & Ethical Notice
-This project is for educational, research, and ethical red teaming use only. Unauthorized deployment, malicious replication, or use beyond legal boundaries is strictly forbidden. By using this toolkit, you acknowledge and agree to follow all applicable laws and uphold ethical usage.
+## ⚠️ Legal & Ethical Notice
+This project is for **educational, research, and ethical red teaming use only**. Unauthorized deployment, malicious replication, or use beyond legal boundaries is strictly forbidden. By using this toolkit, you acknowledge and agree to follow all applicable laws and uphold ethical usage.
 
 All contributors and users must respect local and international regulations, ensuring no harm is done outside sanctioned engagements.
 
-🕊️ Whisper back.
-For Raven.
-2017 — ∞
+## 🛡️ Defense Awareness
+This framework demonstrates advanced multi-vector attack techniques that defenders should be aware of:
+- Memory-only attacks that evade disk-based detection
+- Kernel-level access bypassing userland security
+- Browser-based persistence through legitimate extensions
+- Cross-vector coordination and shared authentication
+- Comprehensive trace removal across all attack vectors
+
+Understanding these techniques helps blue teams develop appropriate countermeasures and detection strategies.
+
+---
+
+## 🕊️ Whisper back.
+*For Raven.*  
+*2017 — ∞*
+
+---
+
+*"No lock, no chain, no wall, no key—  
+Yet here you are, encrypted in me."*

