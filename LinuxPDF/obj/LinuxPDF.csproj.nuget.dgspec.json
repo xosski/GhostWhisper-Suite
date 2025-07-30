@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj": {}
+    "E:\\X12\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj": {}
   },
   "projects": {
-    "E:\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj": {
+    "E:\\X12\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj",
+        "projectUniqueName": "E:\\X12\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj",
         "projectName": "LinuxPDF",
-        "projectPath": "E:\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj",
+        "projectPath": "E:\\X12\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj",
         "packagesPath": "C:\\Users\\ek930\\.nuget\\packages\\",
-        "outputPath": "E:\\GhostWhisper-Suite\\LinuxPDF\\obj\\",
+        "outputPath": "E:\\X12\\GhostWhisper-Suite\\LinuxPDF\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
