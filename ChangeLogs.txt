@@ -3,6 +3,79 @@
 
 ---
 
+## [v1.6.0] – 2025-12-31
+### 🔥 Major Release - HadesAI Integration
+- **GhostHadesIntegrator.py**: Full HadesAI integration with self-learning pentesting capabilities
+  - KnowledgeBase: SQLite-backed persistent learning from operations
+  - NetworkMonitor: Passive network reconnaissance and host discovery
+  - ExploitationEngine: Payload generation (XSS, SQLi, Command Injection, LFI)
+  - Automatic experience tracking and pattern learning
+- **GhostMemory.py**: Conversation and operation memory persistence
+  - File-based fast logging compatible with AICorePortable
+  - SQLite-backed searchable history
+  - HybridGhostMemory combining both approaches
+  - Pattern learning for AI-assisted responses
+
+### ⚡ Enhanced Core Modules
+- **GhostWhisperBootstrap.ps1**: Complete rewrite with v1.6.0 features
+  - ASCII banner and improved UI
+  - EDR detection for 14+ security products
+  - Network discovery scan (menu option 13)
+  - Status dashboard (menu option 14)
+  - Session management with Ghost Tag tracking
+  - Better error handling and module loading
+
+- **BLETrigger.ps1**: Advanced EDR evasion
+  - Risk-level based evasion delays (HIGH/MEDIUM/LOW)
+  - 14 EDR product signatures (CrowdStrike, SentinelOne, Carbon Black, etc.)
+  - Monitor mode for continuous BLE scanning
+  - Expanded command support (WORMHOLE, PHANTOM, EXORCIST)
+
+- **GhostLogger.ps1**: Enterprise-grade logging
+  - Log rotation with configurable size/count limits
+  - AES encryption for sensitive logs
+  - Stealth mode with Base64 encoding
+  - Log watching with real-time filtering
+  - Secure wipe with multi-pass overwrite
+  - Export to JSON/CSV/TXT formats
+
+- **Wormhole.ps1**: Network propagation overhaul
+  - Async network discovery with ping sweep
+  - WinRM and SMB spread methods
+  - Propagation statistics tracking
+  - Auto-spread mode with target prioritization
+  - Enhanced payload mutation for evasion
+
+- **SilentBloom.ps1**: Comprehensive cleanup
+  - Full/MemoryOnly/LogsOnly modes
+  - Secure multi-pass file wiping
+  - Event log cleaning
+  - Browser extension trace removal
+  - Persistence mechanism removal
+  - GhostKernel trace cleanup
+
+- **GhostResidency.ps1**: Memory-resident operations
+  - Multiple modes: Recon, Pulse, Deploy, Interactive
+  - Scheduled task persistence
+  - Command handler with HMAC validation
+  - Phantom recon integration
+
+### 🛠️ Build System
+- **BuildDeployWhisper.ps1**: Modernized build system
+  - Build tool detection (MSBuild, MSVC, DotNet, WSL)
+  - Build statistics and timing
+  - Clean build option
+  - Build manifest generation
+  - Improved packaging with PhantomHook support
+
+### 🐛 Bug Fixes
+- Fixed Anamoly_Detector.ps1 → Anomaly_Detector.ps1 typo
+- Removed duplicate ExorsistMode.ps1
+- Fixed module path references in bootstrap
+- Improved error handling across all modules
+
+---
+
 ## [v1.5.0] – 2025-03-23
 ### 🔥 Major Enhancements
 - **GhostWhisperBootstrap.ps1**: Master operator launcher integrating all modules (Recon, Wormhole, ExorcistMode, GhostKey deployment).
@@ -62,3 +135,17 @@
 - All modules structured for red team training & secure simulation.
 - Updates tied to **GhostTag** signature rotation & ethical containment.
 - Each version honors **Raven**, whose memory inspires this code.
+
+---
+
+### 🔗 Integration
+- v1.6.0 introduces full integration with HadesAI and AICorePortable
+- GhostMemory provides conversation persistence across sessions
+- GhostHadesIntegrator bridges AI capabilities with operational tools
+
+---
+
+*"No lock, no chain, no wall, no key—  
+Yet here you are, encrypted in me."*
+
+🕊️ For Raven. 2017 — ∞

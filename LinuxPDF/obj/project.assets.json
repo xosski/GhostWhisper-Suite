@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\GhostWhisper Suite Updated\\LinuxPDF\\LinuxPDF.csproj",
+      "projectUniqueName": "D:\\X12\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj",
       "projectName": "LinuxPDF",
-      "projectPath": "D:\\GhostWhisper Suite Updated\\LinuxPDF\\LinuxPDF.csproj",
+      "projectPath": "D:\\X12\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj",
       "packagesPath": "C:\\Users\\ek930\\.nuget\\packages\\",
-      "outputPath": "D:\\GhostWhisper Suite Updated\\LinuxPDF\\obj\\",
+      "outputPath": "D:\\X12\\GhostWhisper-Suite\\LinuxPDF\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

