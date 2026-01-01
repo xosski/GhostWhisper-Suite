@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LinuxPDF")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b7c5a6c366c034ac62dc96d83c66926f14f52aca")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+77b6be1af40406d6fbfa33405c1d287281fc23af")]
 [assembly: System.Reflection.AssemblyProductAttribute("LinuxPDF")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LinuxPDF")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
