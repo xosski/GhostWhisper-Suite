@@ -1,8 +1,32 @@
+"""
+GhostFTP.py - Secure FTP service automation and file transfer
+Part of WhisperSuite: GhostWhisper Edition v1.6.0+
+Enhanced for error handling and security
+"""
+
 import os
-from ftp_service import FTPService
+import sys
 import argparse
 import time
+import logging
+from pathlib import Path
+from typing import Optional, List
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - [GhostFTP] %(levelname)s - %(message)s'
+)
+logger = logging.getLogger("GhostFTP")
+
+# Try to import FTP service
+try:
+    from ftp_service import FTPService
+except ImportError:
+    logger.error("ftp_service module not found. Please install required dependencies.")
+    sys.exit(1)
+
+# Configuration variables
 HOST_NAME = None
 USER_NAME = None
 PASSWORD = None
@@ -77,25 +101,34 @@ parser.add_argument(
 args = parser.parse_args()
 
 # Function to get environment variable with prefix
-def get_env_var(var_name, default=None):
-    return os.getenv(f"{args.prefix}_{var_name}", default)
+def get_env_var(var_name: str, default: Optional[str] = None) -> Optional[str]:
+    """Get environment variable with optional prefix"""
+    prefix = getattr(args, 'prefix', '')
+    env_key = f"{prefix}_{var_name}" if prefix else var_name
+    return os.getenv(env_key, default)
 
-# Check that host is present
-if not args.host and not get_env_var("HOST"):
-    print("The host name of the FTP server is mandatory.")
-    exit()
-# Check that username is present
-if not args.username and not get_env_var("USERNAME"):
-    print("The username to connect to the FTP server is mandatory.")
-    exit()
-# Check that password is present
-if not args.password and not get_env_var("PASSWORD"):
-    print("The password to connect to the SFTP server is mandatory")
-    exit()
-# Check that local_directory is present
-if not args.local_directory and not get_env_var("LOCAL_DIRECTORY"):
-    print("The path to the local folder where the files to be sent are stored is mandatory.")
-    exit()
+def validate_config() -> bool:
+    """Validate that all required configuration is present"""
+    errors = []
+    
+    if not args.host and not get_env_var("HOST"):
+        errors.append("FTP server hostname is mandatory (use --host or set HOST env var)")
+    
+    if not args.username and not get_env_var("USERNAME"):
+        errors.append("FTP username is mandatory (use --username or set USERNAME env var)")
+    
+    if not args.password and not get_env_var("PASSWORD"):
+        errors.append("FTP password is mandatory (use --password or set PASSWORD env var)")
+    
+    if not args.local_directory and not get_env_var("LOCAL_DIRECTORY"):
+        errors.append("Local directory is mandatory (use --local_directory or set LOCAL_DIRECTORY env var)")
+    
+    if errors:
+        for error in errors:
+            logger.error(error)
+        return False
+    
+    return True
 
 if args.host:
     HOST_NAME = args.host
@@ -250,10 +283,79 @@ def move_file_to_envoye(local_file_path):
     os.rename(local_file_path, new_file_path)
     return new_file_path
 
-# FTP connection
-if not ftp.connect():
-    exit()
-else:
-    print("Sending files over FTP...")
-    send_local_files_to_ftp(with_ok_file=WITH_OK_FILE)
-    print("Sending files over FTP complete.")
+# Main execution
+if __name__ == "__main__":
+    logger.info("GhostFTP v1.6.0+ starting...")
+    
+    # Validate configuration
+    if not validate_config():
+        logger.error("Configuration validation failed")
+        sys.exit(1)
+    
+    # Apply environment variables as fallback
+    if args.host:
+        HOST_NAME = args.host
+    else:
+        HOST_NAME = get_env_var("HOST")
+    
+    if args.username:
+        USER_NAME = args.username
+    else:
+        USER_NAME = get_env_var("USERNAME")
+    
+    if args.password:
+        PASSWORD = args.password
+    else:
+        PASSWORD = get_env_var("PASSWORD")
+    
+    if args.port:
+        PORT = args.port
+    else:
+        PORT = int(get_env_var("PORT", "21"))
+    
+    if args.local_directory:
+        LOCAL_DIRECTORY = args.local_directory
+    else:
+        LOCAL_DIRECTORY = get_env_var("LOCAL_DIRECTORY")
+    
+    if args.with_ok_file:
+        WITH_OK_FILE = args.with_ok_file
+    else:
+        WITH_OK_FILE = get_env_var("WITH_OK_FILE", "false").lower() == "true"
+    
+    if args.remote_directory:
+        REMOTE_DIRECTORY = args.remote_directory
+    else:
+        REMOTE_DIRECTORY = get_env_var("REMOTE_DIRECTORY", "./recu_ii/")
+    
+    LOCAL_ARCHIVE_DIRECTORY = os.path.join(LOCAL_DIRECTORY, "envoye", str(int(time.time())))
+    
+    # Initialize FTP service
+    try:
+        ftp = FTPService(
+            host=HOST_NAME,
+            port=PORT,
+            identifier=USER_NAME,
+            password=PASSWORD,
+        )
+        
+        # Connect and transfer files
+        if not ftp.connect():
+            logger.error("Failed to connect to FTP server")
+            sys.exit(1)
+        
+        logger.info(f"Connected to FTP server: {HOST_NAME}:{PORT}")
+        logger.info("Starting file transfer...")
+        
+        result = send_local_files_to_ftp(with_ok_file=WITH_OK_FILE)
+        
+        if result:
+            logger.info(f"Successfully transferred {len(result) if isinstance(result, list) else 'unknown'} files")
+        else:
+            logger.warning("No files were transferred")
+        
+        logger.info("File transfer complete")
+        
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")
+        sys.exit(1)

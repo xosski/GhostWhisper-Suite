@@ -1,3 +1,9 @@
+"""
+GhostBluetooth.py - Bluetooth device scanning, interaction, and blocking
+Part of WhisperSuite: GhostWhisper Edition v1.6.0+
+Enhanced for reliability and error handling
+"""
+
 import bluetooth
 import time
 import logging
@@ -9,17 +15,19 @@ import platform
 import threading
 import configparser
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, scrolledtext, ttk
 from datetime import datetime
 import asyncio
+from typing import List, Dict, Optional, Tuple
 
-# Configure logging
+# Configure logging with rotation support
 logging.basicConfig(
     filename="bluetooth_tool.log",
-    level=logging.DEBUG,  # Default to DEBUG for more verbosity
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
 )
-logger = logging.getLogger()
+logger = logging.getLogger("GhostBluetooth")
 
 # Graceful exit handler
 def signal_handler(sig, frame):
@@ -32,21 +40,45 @@ signal.signal(signal.SIGINT, signal_handler)
 
 # Configuration handler
 class Config:
-    def __init__(self):
+    """Manages configuration settings with safe defaults"""
+    
+    def __init__(self, config_file: str = "settings.ini"):
+        self.config_file = config_file
         self.config = configparser.ConfigParser()
-        self.config.read("settings.ini")
+        self._load_config()
         
-    def get(self, section, key):
+    def _load_config(self):
+        """Load configuration from file"""
+        try:
+            if os.path.exists(self.config_file):
+                self.config.read(self.config_file)
+                logger.debug(f"Configuration loaded: {self.config_file}")
+            else:
+                logger.warning(f"Config file not found: {self.config_file}")
+        except Exception as e:
+            logger.error(f"Failed to load config: {e}")
+        
+    def get(self, section: str, key: str, default: str = None) -> Optional[str]:
+        """Get config value with fallback to default"""
         try:
             return self.config.get(section, key)
-        except KeyError as e:
-            logger.error(f"KeyError: {e} - Missing in config file.")
-            return None
+        except (configparser.NoSectionError, configparser.NoOptionError) as e:
+            logger.debug(f"Config key not found: {section}.{key}")
+            return default
 
-    def set(self, section, key, value):
-        self.config.set(section, key, value)
-        with open("settings.ini", "w") as configfile:
-            self.config.write(configfile)
+    def set(self, section: str, key: str, value: str) -> bool:
+        """Set config value and persist to file"""
+        try:
+            if not self.config.has_section(section):
+                self.config.add_section(section)
+            self.config.set(section, key, value)
+            with open(self.config_file, "w") as f:
+                self.config.write(f)
+            logger.debug(f"Config saved: {section}.{key}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to save config: {e}")
+            return False
 
 # Scan Bluetooth devices
 async def scan_devices():

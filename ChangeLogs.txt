@@ -3,6 +3,49 @@
 
 ---
 
+## [v1.6.1] – 2026-02-23
+### 🔧 Code Quality & Modernization
+- **GhostBluetooth.py**: Enhanced error handling, improved type hints, modernized Config class with safe defaults
+- **GhostBrute.go**: 
+  - Removed hardcoded Discord webhook URL, now loads from environment variable
+  - Fixed deprecated io/ioutil imports (using io package instead)
+  - Added proper argument validation and error handling
+  - Improved logging with structured messages
+  - Fixed main loop with proper timeout handling
+  - Added support for comment lines in IP list files
+  
+- **GhostFTP.py**:
+  - Comprehensive logging integration
+  - Improved error handling and validation
+  - Type hints added throughout
+  - Better environment variable handling
+  - Proper main execution guard with __main__
+  - Enhanced error messages
+
+- **GhostWhisperBootstrap.ps1**:
+  - Updated version tracking and metadata
+  - Improved base directory handling
+  - Better module loading resilience
+
+### 📋 Dependencies & Compatibility
+- Updated deprecated imports across all modules
+- Enhanced compatibility with Python 3.9+
+- Go 1.19+ compatibility verified
+- PowerShell Core 7+ verified
+
+### 🐛 Bug Fixes
+- Fixed missing type annotations in utility modules
+- Improved error propagation and logging
+- Fixed potential resource leaks in async operations
+- Enhanced cross-platform path handling
+
+### 🛡️ Security Improvements
+- Removed hardcoded credentials from GhostBrute.go
+- Added configuration validation for all modules
+- Improved error messages to avoid information disclosure
+
+---
+
 ## [v1.6.0] – 2025-12-31
 ### 🔥 Major Release - HadesAI Integration
 - **GhostHadesIntegrator.py**: Full HadesAI integration with self-learning pentesting capabilities
